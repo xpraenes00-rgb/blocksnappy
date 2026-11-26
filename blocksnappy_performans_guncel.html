@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>BLOCK SNAPPY</title>
+<style>
+@property --b1{syntax:"<color>";inherits:true;initial-value:#8fa9ee}
+@property --b2{syntax:"<color>";inherits:true;initial-value:#6a82d8}
+:root{transition:--b1 1.3s,--b2 1.3s}
+:root{--bgi:linear-gradient(#0000,#0000);--b1:#8fa9ee;--b2:#6a82d8;--bd:#2b3470;--ce:#363f82;--cs:40px;--ts:23px;--gold:#ffd21f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{font-family:"Baloo 2","Fredoka","Nunito","Trebuchet MS",system-ui,sans-serif;font-weight:800;color:#fff;background:var(--bgi,linear-gradient(#0000,#0000)),radial-gradient(120% 90% at 50% 0%,var(--b1),var(--b2));touch-action:none;text-shadow:0 2px 0 rgba(0,0,0,.22)}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+.scr{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.scr.on{display:flex}
+/* menu */
+#menu{justify-content:center;gap:14px}
+.logo{text-align:center;line-height:.9;font-size:clamp(46px,13vw,86px);font-style:italic;letter-spacing:1px;text-shadow:0 4px 0 #1b2a7a,0 0 0 #000,0 10px 24px rgba(0,0,0,.35);-webkit-text-stroke:3px #2a3b9c;paint-order:stroke fill}
+.logo b{display:block;color:var(--gold);font-size:.8em}
+.best{display:flex;gap:10px;align-items:center;font-size:26px;color:var(--gold);margin-bottom:10px}
+.crown{font-size:30px;filter:drop-shadow(0 3px 0 rgba(0,0,0,.3))}
+.btn{min-width:min(78vw,300px);padding:12px 22px;border-radius:18px;font-size:22px;background:linear-gradient(#5b8bff,#2f5be0);box-shadow:inset 0 3px 0 rgba(255,255,255,.4),0 6px 0 #1b3aa6,0 10px 18px rgba(0,0,0,.3);transition:transform .12s,filter .12s}
+.btn:hover{filter:brightness(1.12);transform:translateY(-2px)}
+.btn:active{transform:translateY(4px);box-shadow:inset 0 3px 0 rgba(255,255,255,.4),0 2px 0 #1b3aa6}
+.btn.play{font-size:32px;padding:16px 22px;background:linear-gradient(#5fe36b,#22b43a);box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 6px 0 #14762a,0 10px 18px rgba(0,0,0,.3)}
+.btn.play:active{box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 2px 0 #14762a}
+.btn.red{background:linear-gradient(#ff6a5b,#d8321f);box-shadow:inset 0 3px 0 rgba(255,255,255,.4),0 6px 0 #8f1c10}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.row .btn{min-width:0;font-size:17px;padding:10px 14px}
+.fl{position:absolute;inset:0;overflow:hidden;pointer-events:none;contain:layout paint style}
+.fb{position:absolute;bottom:-60px;opacity:.35;will-change:transform;animation:rise linear infinite;border-radius:6px}
+@keyframes rise{to{transform:translateY(-120vh) rotate(360deg)}}
+.mc{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+.lg{display:flex;flex-direction:column;gap:6px;align-items:center}
+.lr{display:flex;gap:6px;justify-content:center}
+.lr i{background-image:radial-gradient(circle at 50% 38%,rgba(255,255,255,.4),transparent 65%);font-style:normal;width:clamp(42px,13vw,66px);height:clamp(42px,13vw,66px);display:grid;place-items:center;font-size:clamp(28px,8.6vw,44px);border-radius:10px;background:var(--c);color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.3);box-shadow:inset 0 4px 0 rgba(255,255,255,.5),inset 4px 0 0 rgba(255,255,255,.2),inset 0 -5px 0 rgba(0,0,0,.3),inset -4px 0 0 rgba(0,0,0,.18),0 8px 14px rgba(0,0,0,.3);animation:drop .6s cubic-bezier(.3,1.6,.5,1) var(--d) backwards,wave 3s ease-in-out calc(var(--d) + .8s) infinite}
+.lr.m i{width:clamp(38px,11.5vw,58px);height:clamp(38px,11.5vw,58px);font-size:clamp(25px,7.6vw,38px)}
+@keyframes drop{from{transform:translateY(-90px) scale(.5);opacity:0}}
+@keyframes wave{50%{transform:translateY(-5px)}}
+.tag{margin:0;font-size:17px;opacity:.9;text-align:center;padding:0 16px}
+.bc{display:flex;align-items:center;gap:12px;padding:8px 24px;border-radius:18px;background:rgba(10,12,40,.45);box-shadow:inset 0 0 0 2px rgba(255,255,255,.18)}
+.bc small{display:block;font-size:13px;opacity:.8;line-height:1}.bc b{font-size:34px;line-height:1.1;color:var(--gold)}
+#menu .play{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.05)}}
+.gr{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:min(92vw,400px)}
+.gb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 2px;border-radius:16px;background:rgba(255,255,255,.14);font-size:12px;box-shadow:inset 0 2px 0 rgba(255,255,255,.25),0 4px 0 rgba(0,0,0,.2);transition:transform .12s,background .12s}
+.gb span{font-size:26px}.gb:hover{background:rgba(255,255,255,.26);transform:translateY(-3px)}.gb:active{transform:translateY(2px)}
+.dq{width:min(92vw,400px);font-size:15px;padding:10px 14px;border-radius:14px;background:rgba(10,12,40,.4)}.dq b{float:right;color:var(--gold)}
+.cell.fall{animation:fall .9s ease-in forwards;z-index:3;position:relative}
+@keyframes fall{25%{filter:brightness(1.8);transform:translateY(-18px) scale(1.1)}to{transform:translate(var(--dx),75vh) rotate(var(--rt));opacity:0}}
+.fs{position:fixed;z-index:45;pointer-events:none;transform:translate(-50%,-50%);font-size:18px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.55);animation:fup .9s ease-out forwards}
+.fs.bg{font-size:30px;color:#ffe45c}
+@keyframes fup{to{transform:translate(-50%,-170%);opacity:0}}
+.bw.cel::before{content:"";position:absolute;inset:-11px;border:6px dotted #ffd54a;border-radius:24px;pointer-events:none;animation:blink .6s infinite alternate;filter:drop-shadow(0 0 6px #ffd54a)}
+@keyframes blink{from{opacity:.35}to{opacity:1}}
+#board.rb{animation:rbw 1.4s ease-out}
+@keyframes rbw{0%{box-shadow:0 0 40px 12px #f33}20%{box-shadow:0 0 40px 12px #ff3}40%{box-shadow:0 0 40px 12px #3f3}60%{box-shadow:0 0 40px 12px #3ff}80%{box-shadow:0 0 40px 12px #f3f}100%{box-shadow:0 0 0 3px rgba(0,0,0,.25),0 14px 30px rgba(0,0,0,.35)}}
+#heart{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--cs)*7.5);line-height:1;color:#ff4fd8;filter:blur(3px) drop-shadow(0 0 30px #ff4fd8);opacity:0;pointer-events:none;z-index:4}
+#heart.on{animation:hh 1.5s ease-out}
+@keyframes hh{0%{transform:scale(.3);opacity:0}30%{transform:scale(1);opacity:.85}100%{transform:scale(1.35);opacity:0}}
+#pop.mega{animation:pm 1.9s ease-out;font-size:clamp(40px,11vw,70px)}
+@keyframes pm{0%{transform:translate(-50%,-50%) scale(0)}14%{transform:translate(-50%,-50%) scale(1.25)}24%{transform:translate(-50%,-50%) scale(1)}85%{opacity:1}100%{transform:translate(-50%,-80%) scale(1);opacity:0}}
+.mk{display:inline-block;width:1em;height:1em;margin:0 .15em;vertical-align:middle;border-radius:.2em;-webkit-text-stroke:0;background:radial-gradient(circle at 30% 38%,#111 0 .06em,#fff .07em .14em,transparent .15em),radial-gradient(circle at 70% 38%,#111 0 .06em,#fff .07em .14em,transparent .15em),radial-gradient(ellipse at 50% 72%,#fff 0 .14em,transparent .15em),var(--c);box-shadow:inset 0 .06em 0 rgba(255,255,255,.5),inset 0 -.07em 0 rgba(0,0,0,.3),0 .06em .1em rgba(0,0,0,.4);animation:jmp .45s ease-in-out infinite alternate}
+.mk+em+.mk,.mk:last-child{animation-delay:.2s}
+@keyframes jmp{to{transform:translateY(-.25em) rotate(8deg)}}
+.cell.pv{box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
+.box.st{background:linear-gradient(#e6d2ae,#cdb48a);padding:12px;border-radius:26px}
+.sth{display:flex;justify-content:center;align-items:center;position:relative;margin-bottom:10px;min-height:36px}
+.sth b{font-size:28px;color:#4a392f;text-shadow:0 2px 0 rgba(255,255,255,.45)}
+.x{position:absolute;right:4px;background:none;font-size:26px;color:#3a2c24;text-shadow:none}
+.stp{background:#54413a;border-radius:18px;padding:14px;box-shadow:inset 0 3px 8px rgba(0,0,0,.35)}
+.ir{display:flex;justify-content:space-around}
+.ic{background:none;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:15px}
+.ic span{font-size:38px;line-height:1;position:relative}
+.ic.off span::after{content:"";position:absolute;left:-4px;right:-4px;top:50%;height:4px;background:#e33;transform:rotate(-40deg);border-radius:2px}
+.vr{display:flex;align-items:center;gap:8px;justify-content:center;margin:10px 0 4px}
+.vr button{width:28px;height:24px;border-radius:6px;background:#fff;color:#333;font-size:18px;line-height:1;text-shadow:none}
+.vr i{width:90px;height:8px;border-radius:5px;background:rgba(255,255,255,.25);position:relative}
+.vr u{position:absolute;left:0;top:0;bottom:0;background:#8d8df2;border-radius:5px}
+.stp hr{border:0;height:1px;background:rgba(255,255,255,.15);margin:8px 0 4px}
+.sbn{display:flex;align-items:center;gap:14px;width:100%;margin-top:10px;padding:11px 18px;border-radius:14px;font-size:22px;text-align:left;box-shadow:inset 0 3px 0 rgba(255,255,255,.4),0 4px 0 rgba(0,0,0,.25);transition:transform .12s,filter .12s}
+.sbn span{width:34px;text-align:center;font-size:26px}.sbn:hover{filter:brightness(1.1)}.sbn:active{transform:translateY(3px)}
+.pu{background:linear-gradient(#e75cf5,#a523cc)}.gr2{background:linear-gradient(#4fe23c,#21a51a)}.bl{background:linear-gradient(#2ec8f6,#1096da)}.rd{background:linear-gradient(#ff6a5b,#d8321f)}
+.beam{position:absolute;z-index:3;pointer-events:none;border-radius:6px;background:linear-gradient(90deg,transparent,var(--bc) 25%,#fff 50%,var(--bc) 75%,transparent);box-shadow:0 0 26px 8px var(--bc);animation:bmh .65s ease-out forwards}
+.beam.v{background:linear-gradient(0deg,transparent,var(--bc) 25%,#fff 50%,var(--bc) 75%,transparent);animation-name:bmv}
+@keyframes bmh{0%{opacity:0;transform:scaleX(.1)}25%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1.04) scaleY(1.5)}}
+@keyframes bmv{0%{opacity:0;transform:scaleY(.1)}25%{opacity:1;transform:scaleY(1)}100%{opacity:0;transform:scaleY(1.04) scaleX(1.5)}}
+.sb{position:relative}
+#score{position:relative;z-index:1}
+#sh{position:absolute;left:50%;top:50%;font-size:70px;line-height:1;color:#ff5fa8;transform:translate(-50%,-50%) scale(var(--hs,1));transition:transform .18s,color .4s;opacity:.85;z-index:0;pointer-events:none;text-shadow:0 0 18px currentColor}
+@keyframes hue{from{filter:blur(1px) drop-shadow(0 0 12px #ff5fa8) hue-rotate(0)}to{filter:blur(1px) drop-shadow(0 0 12px #ff5fa8) hue-rotate(360deg)}}
+.cell.bn::after{content:attr(data-n);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:52%;height:52%;border-radius:50%;background:#eaf1ff;color:#3a4a8a;font-size:calc(var(--cs)*.32);display:flex;align-items:center;justify-content:center;text-shadow:none;box-shadow:0 0 0 2px #7fa3ff}
+.star{position:fixed;z-index:46;pointer-events:none;font-size:22px;margin:-11px 0 0 -11px;transition:transform .7s cubic-bezier(.5,0,.8,.4),opacity .7s}
+.fs.sm{font-size:12px;animation-duration:.7s}
+.pc.in{animation:spin .45s cubic-bezier(.3,1.5,.5,1)}
+@keyframes spin{from{transform:scale(.2) rotate(-20deg);opacity:0}}
+#pop small{display:block;font-size:.36em;margin:2px auto 0;width:max-content;color:#fff;-webkit-text-stroke:3px #c2187a;padding:0 22px;background:linear-gradient(90deg,transparent,rgba(226,77,240,.7),transparent);text-shadow:none;font-style:normal}
+#pop.ep{color:#9dff62;-webkit-text-stroke:6px #1d6a1f}
+#pop.lg{color:#ffd24a;-webkit-text-stroke:6px #7a2a8a}
+#pop.cm{font-size:clamp(46px,13vw,80px)}
+[data-i]{display:inline-flex;width:1.1em;height:1.1em;vertical-align:middle;flex:none}
+[data-i] svg{width:100%;height:100%;display:block}
+#sh{width:72px;height:72px;font-size:0}#sh svg,#heart svg{display:block;width:100%;height:100%}
+#heart svg{width:calc(var(--cs)*7.5);height:calc(var(--cs)*7.5)}
+.star svg{width:22px;height:22px;display:block}
+.ic span{display:block;width:40px;height:40px}
+.crown{filter:drop-shadow(0 2px 0 rgba(0,0,0,.25))}
+body[data-skin="1"] .cell.f{border-radius:3px;background:linear-gradient(135deg,rgba(255,255,255,.2),transparent 55%),var(--c);box-shadow:inset 0 4px 0 rgba(255,255,255,.38),inset 4px 0 0 rgba(255,255,255,.14),inset -4px 0 0 rgba(0,0,0,.25),inset 0 -4px 0 rgba(0,0,0,.34)}
+body[data-skin="2"] .cell.f{border-radius:4px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cellipse cx='18' cy='82' rx='24' ry='14' fill='%23b06a34' fill-opacity='.55'/%3E%3Cellipse cx='84' cy='20' rx='15' ry='10' fill='%23a35a2a' fill-opacity='.4'/%3E%3Cellipse cx='60' cy='60' rx='8' ry='5' fill='%239a5a30' fill-opacity='.3'/%3E%3Cg fill='%238a8f98' stroke='%23555a63' stroke-width='1'%3E%3Ccircle cx='13' cy='13' r='3.6'/%3E%3Ccircle cx='87' cy='13' r='3.6'/%3E%3Ccircle cx='13' cy='87' r='3.6'/%3E%3Ccircle cx='87' cy='87' r='3.6'/%3E%3C/g%3E%3C/svg%3E") center/100% 100% no-repeat,linear-gradient(145deg,#eceef2,#b4bac4);box-shadow:inset 0 0 0 2px rgba(255,255,255,.8),inset 0 0 0 3.5px rgba(0,0,0,.16),0 2px 0 rgba(0,0,0,.35)}
+body[data-skin="3"] .cell.f{border-radius:13%;background:radial-gradient(circle at 24% 22%,rgba(255,255,255,.95) 0 7%,transparent 9%),radial-gradient(circle at 78% 80%,rgba(255,255,255,.7) 0 4%,transparent 6%),radial-gradient(circle at 22% 80%,rgba(255,255,255,.6) 0 3%,transparent 5%),linear-gradient(160deg,#78e0ff,#1e90ff 55%,#0a58d8);box-shadow:inset 0 0 0 2px rgba(200,244,255,.9),inset 0 -5px 7px rgba(0,60,200,.5),0 0 12px rgba(40,160,255,.85)}
+body[data-skin="4"] .cell.f{border-radius:14%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M62 0H100V34L90 26 86 14 74 10Z' fill='%235fa536'/%3E%3Cpath d='M0 66 12 76 16 90 30 100H0Z' fill='%235fa536'/%3E%3Cpath d='M76 4 92 10 96 24' stroke='%238fd25a' stroke-width='2' fill='none'/%3E%3Cpath d='M16 14 30 34 24 54 40 72M60 100 66 80 84 70' fill='none' stroke='%23555a64' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M18 12 32 32M62 98 68 78' fill='none' stroke='rgb(255,255,255)' stroke-opacity='.4' stroke-width='1.2'/%3E%3C/svg%3E") center/100% 100% no-repeat,linear-gradient(150deg,#c4c7cf,#8d919b);box-shadow:inset 0 0 0 2px rgba(255,255,255,.4),inset 0 -4px 0 rgba(0,0,0,.3),0 2px 0 rgba(0,0,0,.35)}
+body[data-skin="5"] .cell.f{border-radius:6%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Crect x='9' y='9' width='82' height='82' rx='4' fill='none' stroke='%238b4a14' stroke-width='5'/%3E%3Crect x='13' y='13' width='74' height='74' fill='%23cf8236'/%3E%3Cpath d='M15 36H85M15 56H85M15 76H85' stroke='%23a35f26' stroke-width='2'/%3E%3Cpath d='M15 35H85M15 55H85M15 75H85' stroke='%23e9b06a' stroke-width='1' stroke-opacity='.7'/%3E%3Cg fill='%23d3d7de' stroke='%236a6f78' stroke-width='1.2'%3E%3Ccircle cx='17' cy='17' r='4'/%3E%3Ccircle cx='83' cy='17' r='4'/%3E%3Ccircle cx='17' cy='83' r='4'/%3E%3Ccircle cx='83' cy='83' r='4'/%3E%3C/g%3E%3C/svg%3E") center/100% 100% no-repeat,linear-gradient(#e49a45,#b9672a);box-shadow:0 2px 0 rgba(0,0,0,.4),0 0 0 1px rgba(60,25,0,.5)}
+body[data-skin="6"] .cell.f{border-radius:12%;border:3px solid transparent;background:linear-gradient(#1a1546,#241a66) padding-box,linear-gradient(135deg,#e040ff,#2ab6ff) border-box;box-shadow:0 0 10px #8a5cff,inset 0 0 8px rgba(120,100,255,.6)}
+body[data-skin="7"] .cell.f{border-radius:12%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 34 24 28 40 46 66 34 100 40M24 28 20 0M40 46 34 74 14 100M66 34 74 62 100 70M34 74 62 90 74 62M62 90 70 100' stroke='%23ff6a0a' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M0 34 24 28 40 46 66 34 100 40M24 28 20 0M40 46 34 74 14 100M66 34 74 62 100 70M34 74 62 90 74 62M62 90 70 100' stroke='%23ffd24a' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% 100% no-repeat,radial-gradient(circle at 50% 40%,#5a2a1c,#2e130c);box-shadow:inset 0 0 0 2px rgba(255,140,30,.55),0 0 11px rgba(255,110,10,.85)}
+body[data-skin="8"] .cell.f{border-radius:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cg stroke='rgb(255,255,255)' stroke-opacity='.4' stroke-width='1.3' stroke-linejoin='round'%3E%3Cpolygon points='24,2 76,2 68,32 32,32' fill='%23d3a3ff'/%3E%3Cpolygon points='76,2 98,24 68,32' fill='%239a55f0'/%3E%3Cpolygon points='68,32 98,24 98,76 68,68' fill='%237a38e0'/%3E%3Cpolygon points='98,76 76,98 68,68' fill='%236a2ccc'/%3E%3Cpolygon points='68,68 76,98 24,98 32,68' fill='%235b22b8'/%3E%3Cpolygon points='32,68 24,98 2,76' fill='%237e3fe0'/%3E%3Cpolygon points='32,32 32,68 2,76 2,24' fill='%23a566f5'/%3E%3Cpolygon points='2,24 24,2 32,32' fill='%23b983ff'/%3E%3Cpolygon points='32,32 68,32 68,68 32,68' fill='%239b5cf4'/%3E%3C/g%3E%3Cpolygon points='38,38 56,38 38,56' fill='%23fff' fill-opacity='.45'/%3E%3C/svg%3E") center/100% 100% no-repeat;box-shadow:none;filter:drop-shadow(0 0 5px rgba(170,100,255,.85))}
+body[data-skin="9"] .cell.f{border-radius:14%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V26Q93 38 86 25 78 42 68 26 58 40 48 25 38 42 28 26 18 40 10 25 4 33 0 28Z' fill='%23fff'/%3E%3Cpath d='M0 22Q10 30 20 22T40 24 60 22 80 24 100 20V26Q93 38 86 25 78 42 68 26 58 40 48 25 38 42 28 26 18 40 10 25 4 33 0 28Z' fill='%23cfe9ff'/%3E%3Cpath d='M20 52 40 66 34 86 52 98M74 44 60 64 82 78' stroke='%23fff' stroke-opacity='.65' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='70' cy='86' r='2.4' fill='%23fff' fill-opacity='.8'/%3E%3Ccircle cx='22' cy='78' r='1.8' fill='%23fff' fill-opacity='.8'/%3E%3C/svg%3E") center/100% 100% no-repeat,linear-gradient(160deg,#62ceff,#1f7be6 60%,#1556c8);box-shadow:inset 0 0 0 2px rgba(190,236,255,.8),0 0 11px rgba(60,170,255,.8)}
+body[data-skin="10"] .cell.f{border-radius:12%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cellipse cx='28' cy='74' rx='15' ry='11' fill='%23b2763f' stroke='%236d3f1d' stroke-width='2'/%3E%3Cellipse cx='72' cy='80' rx='13' ry='10' fill='%23a56a36' stroke='%236d3f1d' stroke-width='2'/%3E%3Cellipse cx='52' cy='56' rx='10' ry='7' fill='%23b98048' stroke='%236d3f1d' stroke-width='2'/%3E%3Cpath d='M0 0H100V32L94 25 90 40 82 27 76 42 68 27 60 40 52 25 44 42 36 27 28 40 20 25 12 40 6 27 0 36Z' fill='%234fbf2c'/%3E%3Cpath d='M0 0H100V16L90 12 80 18 70 11 60 17 50 11 40 18 30 11 20 17 10 11 0 16Z' fill='%237be04a'/%3E%3Ccircle cx='24' cy='12' r='6' fill='%23fff'/%3E%3Ccircle cx='24' cy='12' r='2.4' fill='%23ffd21f'/%3E%3Ccircle cx='74' cy='9' r='5' fill='%23fff'/%3E%3Ccircle cx='74' cy='9' r='2' fill='%23ffd21f'/%3E%3C/svg%3E") center/100% 100% no-repeat,linear-gradient(#855027,#5e3517);box-shadow:0 2px 0 rgba(0,0,0,.4)}
+body[data-skin="11"] .cell.f{border-radius:12%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M8 74 34 46H66' stroke='%232b3a52' stroke-width='3.5' fill='none' stroke-linejoin='round'/%3E%3Cpath d='M92 26 70 50' stroke='%232b3a52' stroke-width='3' fill='none'/%3E%3Cpath d='M12 93H88' stroke='%2325e0ff' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M10 8H40' stroke='%2325e0ff' stroke-width='3' stroke-linecap='round' stroke-opacity='.8'/%3E%3Cg fill='%2325e0ff'%3E%3Ccircle cx='14' cy='14' r='3'/%3E%3Ccircle cx='86' cy='14' r='3'/%3E%3C/g%3E%3C/svg%3E") center/100% 100% no-repeat,linear-gradient(145deg,#b3bfd0,#6d7a8f);box-shadow:inset 0 0 0 2px rgba(37,224,255,.75),inset 0 0 9px rgba(37,224,255,.55),0 0 10px rgba(37,224,255,.55)}
+body[data-skin="12"] .cell.f{border-radius:13%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Crect width='100' height='100' fill='%234a4745'/%3E%3Cg stroke='%235a4300' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpolygon points='6,20 30,5 52,16 46,40 22,46' fill='%237b7773'/%3E%3Cpolygon points='52,16 88,6 95,34 70,48 46,40' fill='%23ffc928'/%3E%3Cpolygon points='46,40 70,48 62,76 36,70' fill='%23ffd84d'/%3E%3Cpolygon points='5,52 22,46 36,70 24,94 5,80' fill='%23ffb800'/%3E%3Cpolygon points='36,70 62,76 78,95 36,97 24,94' fill='%237b7773'/%3E%3Cpolygon points='70,48 95,34 95,70 78,95 62,76' fill='%23e9a90f'/%3E%3C/g%3E%3Cg fill='%23fff3b0' opacity='.85'%3E%3Cpolygon points='56,18 72,13 67,27'/%3E%3Cpolygon points='40,46 53,50 47,61'/%3E%3Cpolygon points='84,40 92,44 86,56'/%3E%3C/g%3E%3C/svg%3E") center/100% 100% no-repeat;box-shadow:inset 0 0 0 2px rgba(255,214,90,.7),0 0 12px rgba(255,190,40,.8)}
+body[data-skin="13"] .cell.f{border-radius:17%;background:linear-gradient(135deg,color-mix(in srgb,var(--c) 80%,#fff),var(--c) 45%,color-mix(in srgb,var(--c) 40%,#3a1bff));box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),inset 0 0 0 4px var(--c),inset 0 0 12px rgba(255,255,255,.5),0 0 12px var(--c)}
+body[data-skin="14"] .cell.f{border-radius:6%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Crect x='5' y='5' width='90' height='90' rx='5' fill='%23c47a36' stroke='%237c4318' stroke-width='5'/%3E%3Crect x='13' y='13' width='74' height='74' fill='%23b96f2d' stroke='%23e0a15a' stroke-width='2'/%3E%3Cpath d='M16 16 84 84M84 16 16 84' stroke='%236e3a14' stroke-width='13' stroke-linecap='round'/%3E%3Cpath d='M16 16 84 84M84 16 16 84' stroke='%23d69a52' stroke-width='6' stroke-linecap='round'/%3E%3Cg fill='%23b9bec6' stroke='%235f646d' stroke-width='1.4'%3E%3Crect x='3' y='3' width='20' height='20' rx='3'/%3E%3Crect x='77' y='3' width='20' height='20' rx='3'/%3E%3Crect x='3' y='77' width='20' height='20' rx='3'/%3E%3Crect x='77' y='77' width='20' height='20' rx='3'/%3E%3C/g%3E%3Cg fill='%236a6f78'%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3Ccircle cx='87' cy='13' r='3'/%3E%3Ccircle cx='13' cy='87' r='3'/%3E%3Ccircle cx='87' cy='87' r='3'/%3E%3C/g%3E%3C/svg%3E") center/100% 100% no-repeat,#b96f2d;box-shadow:0 2px 0 rgba(0,0,0,.4)}
+body:not([data-skin="0"]):not([data-skin=""]) .cell.f::before{display:none}
+body[data-skin="6"] .cell.f::before{display:block;border-color:rgba(130,210,255,.85);box-shadow:0 0 6px rgba(120,200,255,.7)}
+body[data-skin="13"] .cell.f::before{display:block;border-color:rgba(255,255,255,.85)}
+#mascot{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 5vh);width:clamp(110px,34vw,165px);transform:translate(-50%,140%);z-index:55;pointer-events:none;opacity:0;visibility:hidden}
+#mascot.on{visibility:visible;animation:mup 3s ease-in-out forwards}
+@keyframes mup{0%{opacity:0;transform:translate(-50%,140%) rotate(-8deg)}12%{opacity:1;transform:translate(-50%,-6%) rotate(5deg)}24%{opacity:1;transform:translate(-50%,0) rotate(0)}78%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,140%) rotate(6deg)}}
+#mascot svg{display:block;width:100%;height:auto;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35))}
+#mascot .say{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;background:#fff;color:#3a2f8f;padding:7px 14px;border-radius:16px;font-size:16px;white-space:nowrap;text-shadow:none;box-shadow:0 4px 0 rgba(0,0,0,.18)}
+#mascot .say::after{content:"";position:absolute;left:50%;top:100%;margin-left:-7px;border:7px solid transparent;border-top-color:#fff}
+.bd{animation:bob .45s ease-in-out infinite alternate}@keyframes bob{to{transform:translateY(-5px)}}
+.aL{transform-origin:34px 112px;animation:wvl .5s ease-in-out infinite alternate}.aR{transform-origin:126px 112px;animation:wvr .5s ease-in-out infinite alternate .15s}
+@keyframes wvl{from{transform:rotate(-16deg)}to{transform:rotate(16deg)}}@keyframes wvr{from{transform:rotate(16deg)}to{transform:rotate(-16deg)}}
+.ey{transform-origin:80px 102px;animation:blk 1.6s infinite}@keyframes blk{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(.1)}}
+.ring{position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px;border-radius:50%;border:6px solid #fff;box-shadow:0 0 30px 10px rgba(255,255,255,.75),inset 0 0 20px rgba(255,255,255,.6);pointer-events:none;z-index:6;animation:ringx .95s ease-out forwards}
+@keyframes ringx{from{transform:scale(1);opacity:1}to{transform:scale(34);opacity:0}}
+.flash{position:fixed;inset:0;background:radial-gradient(circle,#fff,rgba(255,255,255,0) 70%);pointer-events:none;z-index:48;animation:fl .7s forwards}
+@keyframes fl{0%{opacity:0}25%{opacity:.85}100%{opacity:0}}
+.pc.flip{animation:flip .8s ease-in-out}
+@keyframes flip{0%{transform:rotateY(0) scale(1)}50%{transform:rotateY(90deg) scale(1.3)}100%{transform:rotateY(0) scale(1)}}
+em{font-style:normal}
+#menu .mc{gap:10px}
+.gm svg{display:block;overflow:visible}
+#menuGhost{display:flex;justify-content:center}
+#menuGhost svg{width:clamp(84px,14vh,126px);height:auto;filter:drop-shadow(0 0 12px rgba(150,120,255,.9));animation:gfl 3s ease-in-out infinite}
+@keyframes gfl{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-10px) rotate(5deg)}}
+.gL{transform-origin:50px 118px;animation:gw .6s ease-in-out infinite alternate}
+.gR{transform-origin:150px 118px;animation:gw2 .6s ease-in-out infinite alternate .2s}
+@keyframes gw{from{transform:rotate(-14deg)}to{transform:rotate(12deg)}}
+@keyframes gw2{from{transform:rotate(12deg)}to{transform:rotate(-14deg)}}
+.ht{transform-origin:100px 62px;animation:hb 2.6s ease-in-out infinite}
+@keyframes hb{50%{transform:rotate(4deg) translateY(-2px)}}
+.tw{animation:tw 1.3s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.tw.b{animation-delay:.5s}.tw.c{animation-delay:.9s}
+@keyframes tw{0%,100%{opacity:.25;transform:scale(.6)}50%{opacity:1;transform:scale(1.15)}}
+.gt{animation:gtl 2.2s ease-in-out infinite;transform-origin:100px 200px}
+@keyframes gtl{50%{transform:skewX(-7deg)}}
+.gb2{transform-origin:100px 98px;animation:blk 2.6s infinite}
+#mascot .gm svg{width:100%;height:auto;filter:drop-shadow(0 0 12px rgba(150,120,255,.9))}
+.box .gm svg{width:112px;height:auto;margin:0 auto 4px;filter:drop-shadow(0 0 10px rgba(150,120,255,.8))}
+.box.ms{background:linear-gradient(#6c8ae8,#4f68cf);padding:12px;border-radius:26px}
+.ms .sth b{color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.2)}.ms .x{color:#fff}
+.ms .stp{background:#3a3fa8;box-shadow:inset 0 3px 8px rgba(0,0,0,.3);padding:8px 14px}
+.mrow{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:13px 4px;border-bottom:1px solid rgba(255,255,255,.14);background:none;font-size:17px;text-align:left}
+.mrow .chev{width:18px;height:18px;opacity:.9;flex:none;margin-left:4px}.mrow small{opacity:.75;font-size:14px}
+.mrow.rs{color:#ff8f86;border-bottom:0}
+.apph{display:flex;align-items:center;gap:14px;padding:8px 4px 12px}.apph svg{width:62px;height:62px;flex:none}.apph b{display:block;font-size:19px}.apph small{opacity:.8;font-size:15px}
+.soc{display:flex;gap:8px;justify-content:space-between;padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.14)}
+.soc button{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;box-shadow:0 3px 0 rgba(0,0,0,.3);transition:transform .12s}.soc button:hover{transform:translateY(-2px)}.soc svg{width:25px;height:25px}
+.mg{display:flex;align-items:center;justify-content:center;gap:12px;width:min(80%,300px);margin:12px auto 0;padding:11px 18px;border-radius:14px;background:linear-gradient(#27c4d8,#128aa6);font-size:21px;box-shadow:inset 0 3px 0 rgba(255,255,255,.35),0 4px 0 rgba(0,0,0,.25)}
+.lgb{display:flex;align-items:center;gap:12px;width:100%;margin-top:8px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.12);font-size:18px;text-align:left}
+.lgb.on{background:rgba(95,227,107,.35);box-shadow:inset 0 0 0 2px #5fe36b}
+.lgb i{font-style:normal;font-size:13px;width:34px;height:26px;border-radius:7px;background:#fff;color:#3a3fa8;display:grid;place-items:center;text-shadow:none;flex:none}
+.ms p.lt{font-size:15px;line-height:1.45;margin:8px 2px 10px;text-align:left}
+.legal-copy{max-height:62dvh;overflow:auto;padding:2px 3px;overscroll-behavior:contain}
+.legal-copy h3{font-size:17px;margin:14px 0 5px;color:#ffe28a;text-align:left}
+.legal-copy p{font-size:14px;line-height:1.55;margin:0 0 10px;text-align:left;font-weight:650}
+.share-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.share-actions button{padding:12px 9px;border-radius:12px;background:rgba(255,255,255,.15);font-size:15px;font-weight:800}
+.share-actions button:active{transform:scale(.98)}
+@media(max-height:660px){#menuGhost svg{width:74px}.lr i{width:clamp(36px,11vw,50px)!important;height:clamp(36px,11vw,50px)!important}.btn.play{padding:10px 20px!important;font-size:26px!important}}
+@media(max-width:700px){
+  /* Mobil GPU yükünü azalt: hücrelerin parlak dış gölgelerini sadeleştir. */
+  .cell.f{box-shadow:inset 1px 1px 0 rgba(255,255,255,.48),inset -1px -1px 0 rgba(0,0,0,.24)}
+  #board{box-shadow:0 0 0 3px rgba(255,236,200,.38),0 8px 18px rgba(0,0,0,.25)}
+  .pc{filter:none}
+  .ib:hover,.gb:hover,.btn:hover{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
+}
+/* game */
+#game{gap:6px;padding-top:calc(env(safe-area-inset-top) + 8px)}
+.hd{width:min(94vw,560px);display:flex;justify-content:space-between;align-items:center}
+.hd .best{margin:0;font-size:28px}
+.ib{width:44px;height:44px;border-radius:14px;font-size:22px;background:rgba(255,255,255,.14);margin-left:6px;transition:transform .12s,background .12s}
+.ib:hover{background:rgba(255,255,255,.26);transform:scale(1.08)}.ib:active{transform:scale(.92)}
+.sb{min-width:200px;text-align:center;padding:4px 26px;border-radius:20px;background:rgba(10,12,40,.55);border:3px solid #f00;box-shadow:0 0 14px rgba(255,255,255,.3);animation:rgbb 4s linear infinite}
+@keyframes rgbb{0%,100%{border-color:#f33}17%{border-color:#ff3}33%{border-color:#3f3}50%{border-color:#3ff}67%{border-color:#36f}83%{border-color:#f3f}}
+#score{font-size:clamp(40px,10vw,58px);line-height:1.1;color:transparent;text-shadow:none;background:linear-gradient(90deg,#f33,#ff3,#3f3,#3ff,#36f,#f3f,#f33);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;animation:rgbt 3s linear infinite;transition:transform .15s}
+@keyframes rgbt{to{background-position:-200% 0}}
+.gear{position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:14px;margin:0}
+#score.bump{transform:scale(1.18)}
+.bw{position:relative}
+#board{display:grid;grid-template-columns:repeat(8,var(--cs));gap:2px;padding:6px;background:var(--bd);border-radius:16px;box-shadow:0 0 0 4px rgba(255,236,200,.5),0 0 0 6px rgba(0,0,0,.18),0 14px 30px rgba(0,0,0,.35);touch-action:none}
+#board.dead .cell.f{animation:dead 1s forwards}
+@keyframes dead{to{filter:grayscale(1) brightness(.6);transform:scale(.9)}}
+.cell{position:relative;width:var(--cs);height:var(--cs);border-radius:4px;background:var(--ce)}
+.cell.f{border-radius:7px;background:var(--c);background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--c) 45%,#fff) 0,var(--c) 58%,color-mix(in srgb,var(--c) 68%,#000) 100%);box-shadow:inset 2px 2px 0 rgba(255,255,255,.6),inset -2px -2px 0 rgba(0,0,0,.3),0 0 8px -1px var(--c)}
+.cell.f::before{content:"";position:absolute;inset:21%;border:2px solid rgba(255,255,255,.6);border-radius:24%;box-shadow:0 0 6px rgba(255,255,255,.55),inset 0 0 6px rgba(255,255,255,.45);pointer-events:none}
+.cell.pop{animation:pop .25s}
+@keyframes pop{50%{transform:scale(1.15)}}
+.cell.clr{animation:clr .22s forwards}
+@keyframes clr{40%{filter:brightness(2.2);transform:scale(1.1)}to{opacity:0;transform:scale(.2)}}
+.cell.pv{background:var(--c);opacity:.55}.cell.pv.bad{background:#ff3b3b;opacity:.4}
+.cell.hl{box-shadow:inset 0 0 0 3px #fff,0 0 12px #fff}
+#pop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);pointer-events:none;font-size:clamp(34px,9vw,58px);font-style:italic;white-space:nowrap;color:#ffe28a;-webkit-text-stroke:6px #8a4313;paint-order:stroke fill;text-shadow:0 0 28px #ffe45c;z-index:5}
+#pop em{color:#ff4fd8;font-style:inherit}
+#pop.go{animation:pp 1s ease-out}
+@keyframes pp{0%{transform:translate(-50%,-50%) scale(0)}20%{transform:translate(-50%,-50%) scale(1.25)}35%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-90%) scale(1);opacity:0}}
+#tray{width:min(94vw,560px);display:flex;justify-content:space-around;align-items:center;margin-top:8px}
+.slot{flex:1;height:calc(var(--ts)*5 + 20px);display:flex;align-items:center;justify-content:center;touch-action:none;cursor:grab;position:relative}
+.slot.sel{background:rgba(255,255,255,.14);border-radius:14px;outline:2px dashed rgba(255,255,255,.6)}
+.slot.dim .pc{opacity:.25}
+.pc{display:grid;grid-auto-rows:var(--ts);gap:1px;filter:drop-shadow(0 6px 5px rgba(0,0,0,.3));transition:transform .15s}
+.slot:hover .pc{transform:scale(1.07)}
+.pc .cell{width:var(--ts);height:var(--ts);border-radius:3px}
+.ghost{position:fixed;left:0;top:0;z-index:50;pointer-events:none;display:grid;gap:2px;will-change:transform}
+.ghost .cell{width:var(--cs);height:var(--cs)}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
+/* modal */
+#modal{position:fixed;inset:0;z-index:60;background:rgba(10,12,40,.8);display:none;align-items:center;justify-content:center;padding:16px}
+#modal.on{display:flex}
+.box{width:min(92vw,400px);max-height:88vh;overflow:auto;background:linear-gradient(#4a58b8,#2f3a8c);border-radius:24px;padding:20px;text-align:center;box-shadow:inset 0 3px 0 rgba(255,255,255,.3),0 20px 50px rgba(0,0,0,.5);animation:in .25s}
+@keyframes in{from{transform:scale(.8);opacity:0}}
+.box h2{margin:0 0 12px;font-size:30px;color:var(--gold)}
+.box p,.box li{font-size:16px;line-height:1.35;font-weight:700;text-align:left}
+.box ul{padding-left:20px;margin:6px 0 14px}
+.box .btn{display:block;margin:10px auto 0;width:100%}
+.li{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(0,0,0,.2);border-radius:12px;padding:10px 12px;margin:7px 0;text-align:left;font-size:16px}
+.li small{display:block;opacity:.75;font-weight:700}
+.bar{height:8px;border-radius:5px;background:rgba(255,255,255,.2);margin-top:5px;overflow:hidden}.bar i{display:block;height:100%;background:#5fe36b}
+.tg{padding:6px 14px;border-radius:12px;background:#d8321f;font-size:15px}.tg.on{background:#22b43a}
+.th{width:44px;height:44px;border-radius:12px;border:3px solid transparent}.th.on{border-color:#fff}
+.big{font-size:52px;line-height:1.1}
+#toast{position:fixed;top:14px;left:50%;transform:translate(-50%,-120px);background:#22b43a;padding:10px 18px;border-radius:16px;z-index:70;font-size:17px;transition:transform .4s;box-shadow:0 8px 20px rgba(0,0,0,.4);max-width:92vw;text-align:center}
+#toast.on{transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition:none!important}}
+
+/* ---------- telefon ve tablet uyumu ---------- */
+@media (max-width: 600px) {
+  .scr { padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); }
+  #menu { gap: 9px; padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  #menu .mc { gap: 9px; }
+  .tag { font-size: clamp(13px, 3.8vw, 17px); }
+  .btn { min-width: min(82vw, 300px); }
+  .hd { width: 94vw; min-height: 42px; }
+  .hd .best { font-size: clamp(20px, 6vw, 28px); }
+  .ib { width: 42px; height: 42px; }
+  .sb { min-width: 0; width: min(62vw, 240px); padding: 3px 16px; }
+  #score { font-size: clamp(34px, 10vw, 52px); }
+  #board { gap: 2px; padding: 6px; max-width: 94vw; }
+  #tray { width: 96vw; margin-top: 4px; }
+  .slot { min-width: 0; }
+  .box { width: min(94vw, 400px); max-height: 84dvh; padding: 16px; }
+  .box h2 { font-size: clamp(24px, 7vw, 30px); }
+  .gear { top: calc(env(safe-area-inset-top) + 8px); right: 8px; }
+}
+@media (max-height: 700px) {
+  #game { gap: 3px; padding-top: calc(env(safe-area-inset-top) + 4px); }
+  #tray { margin-top: 2px; }
+  .slot { height: calc(var(--ts)*4 + 14px); }
+  #menu { gap: 6px; }
+  #menu .mc { gap: 6px; }
+  #menuGhost svg { width: clamp(58px, 10vh, 88px); }
+  .tag { margin: 0; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  #game { gap: 2px; padding-top: max(3px, env(safe-area-inset-top)); }
+  .hd { min-height: 34px; }
+  .ib { width: 34px; height: 34px; border-radius: 10px; }
+  .sb { padding: 0 12px; }
+  #score { font-size: 32px; }
+  #tray { margin-top: 0; }
+  .slot { height: calc(var(--ts)*3 + 10px); }
+  #menu .mc { gap: 5px; }
+  #menuGhost svg { width: 54px; }
+  .logo { font-size: clamp(34px, 8vw, 54px); }
+  .btn.play { font-size: 24px; padding: 8px 18px; }
+  .gr { gap: 6px; }
+}
+
+</style>
+</head>
+<body>
+<section id="menu" class="scr on">
+  <div class="fl" id="fl"></div>
+  <button class="ib gear" id="gearM" onclick="settings()"><i data-i="gear"></i></button>
+  <div class="mc">
+    <div class="lg" role="img" aria-label="Block Snappy"><div class="lr" id="lg1"></div><div class="lr m" id="lg2"></div></div>
+    <div class="gm" id="menuGhost"></div>
+    <p class="tag" data-t="tag"></p>
+    <button class="btn play" onclick="start()"><i data-i="play"></i> <em data-t="play"></em></button>
+    <div class="gr">
+      <button class="gb" onclick="quests()"><span data-i="target"></span><em data-t="quests"></em></button>
+      <button class="gb" onclick="achs()"><span data-i="trophy"></span><em data-t="ach"></em></button>
+      <button class="gb" onclick="stats()"><span data-i="chart"></span><em data-t="stats"></em></button>
+      <button class="gb" onclick="howTo()"><span data-i="help"></span><em data-t="howto"></em></button>
+    </div>
+    <div class="dq" id="mQ"></div>
+  </div>
+</section>
+<section id="game" class="scr">
+  <div class="hd">
+    <div class="best"><span class="crown" data-i="crown"></span><span id="gBest">0</span></div>
+    <button class="ib" id="gearG" onclick="settings()"><i data-i="gear"></i></button>
+  </div>
+  <div class="sb"><b id="sh"></b><div id="score">0</div></div>
+  <div class="bw"><div id="board"></div><div id="pop"></div><div id="heart"></div></div>
+  <div id="tray"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+</section>
+<canvas id="fx"></canvas>
+<div id="mascot"><div class="say"></div><div class="gm"></div></div>
+<div id="modal"></div>
+<div id="toast"></div>
+<script>
+"use strict";
+const N=8,$=s=>document.querySelector(s);
+const SV=(b,a)=>'<svg viewBox="0 0 24 24" '+(a===undefined?'fill="currentColor"':a)+' aria-hidden="true">'+b+'</svg>';
+const ST='fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
+const GO='stroke="#b97a00" stroke-width="1.3" stroke-linejoin="round"';
+const IC={
+ gear:SV('<path fill-rule="evenodd" d="M12 5.2a6.8 6.8 0 1 0 0 13.6a6.8 6.8 0 1 0 0-13.6zM12 9a3 3 0 1 1 0 6a3 3 0 1 1 0-6z"/>'+[0,45,90,135,180,225,270,315].map(a=>'<rect x="9.8" y="1.6" width="4.4" height="5" rx="1.2" transform="rotate('+a+' 12 12)"/>').join('')),
+ crown:SV('<path d="M3 18 1.8 7.5l5.4 4.2L12 4l4.8 7.7 5.4-4.2L21 18z" fill="#ffc928" '+GO+'/><rect x="3" y="18.6" width="18" height="2.8" rx="1.2" fill="#ffb300" '+GO+'/><circle cx="1.8" cy="7.2" r="1.5" fill="#ffe27a" '+GO+'/><circle cx="12" cy="3.8" r="1.6" fill="#ffe27a" '+GO+'/><circle cx="22.2" cy="7.2" r="1.5" fill="#ffe27a" '+GO+'/><path d="M6.3 16.2 5.6 11.6 8.4 13.8z" fill="#fff6c8" opacity=".75"/>',''),
+ play:SV('<path d="M7.5 4.8v14.4l12-7.2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>'),
+ target:SV('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/>',ST),
+ trophy:SV('<path d="M7 3.5h10v6a5 5 0 0 1-10 0z" fill="#ffc928" '+GO+'/><path d="M7 5.5H4v2a3.5 3.5 0 0 0 3.6 3.4M17 5.5h3v2a3.5 3.5 0 0 1-3.6 3.4" fill="none" stroke="#b97a00" stroke-width="1.6" stroke-linecap="round"/><rect x="10.6" y="14.3" width="2.8" height="3.4" fill="#e69a00"/><rect x="7.5" y="17.7" width="9" height="3" rx="1.2" fill="#ffc928" '+GO+'/><path d="M9.2 5.5v3.8" stroke="#fff6c8" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>',''),
+ chart:SV('<rect x="3.5" y="12" width="4.5" height="8.5" rx="1.3"/><rect x="9.8" y="3.5" width="4.5" height="17" rx="1.3"/><rect x="16" y="8" width="4.5" height="12.5" rx="1.3"/>'),
+ help:SV('<circle cx="12" cy="12" r="9.2"/><path d="M9.3 9.4a2.8 2.8 0 1 1 4.1 2.5c-.9.5-1.4 1-1.4 2"/><circle cx="12" cy="16.9" r=".6" fill="currentColor"/>',ST),
+ sound:SV('<path d="M3.5 9.5v5h3.8L12.5 19V5L7.3 9.5z" fill="currentColor" stroke-width="1.6"/><path d="M16 9a4.2 4.2 0 0 1 0 6M18.6 6.4a8 8 0 0 1 0 11.2"/>',ST),
+ music:SV('<path d="M9 17.5V5.5l10-2v12"/><circle cx="6.3" cy="17.5" r="2.8" fill="currentColor"/><circle cx="16.3" cy="15.5" r="2.8" fill="currentColor"/>',ST),
+ vibe:SV('<rect x="8" y="3" width="8" height="18" rx="2.2"/><path d="M4.5 8.5v7M2 10.5v3M19.5 8.5v7M22 10.5v3"/>',ST),
+ home:SV('<path d="M12 3 2 12.2h3V20h5.2v-5h3.6v5H19v-7.8h3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>'),
+ replay:SV('<path d="M19.6 12a7.6 7.6 0 1 1-2.3-5.4"/><path d="M19.8 3.6v5.2h-5.2"/>',ST),
+ palette:SV('<path d="M12 2.8a9.2 9.2 0 1 0 0 18.4c1.3 0 2-1 1.5-2.1-.5-1.1.2-2.4 1.5-2.4h1.6a4.4 4.4 0 0 0 4.4-4.4c0-5.2-4.2-9.5-9-9.5z"/><circle cx="7.6" cy="11.2" r="1.5" fill="#e8483f"/><circle cx="10.4" cy="7.2" r="1.5" fill="#f5b81c"/><circle cx="15.2" cy="7.6" r="1.5" fill="#2f6bff"/>'),
+ trash:SV('<path d="M4.5 6.5h15M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6"/>',ST),
+ star:SV('<path d="M12 2.4l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.4 6 20.8l1.3-6.7-5-4.7 6.8-.8z" fill="#ffd21f" stroke="#c98a00" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 5.5l1.5 3.3" stroke="#fff8c9" stroke-width="1.4" stroke-linecap="round"/>',''),
+ heart:SV('<path d="M12 21.2S3.2 15.7 3.2 9.4A4.9 4.9 0 0 1 12 6.8a4.9 4.9 0 0 1 8.8 2.6C20.8 15.7 12 21.2 12 21.2z"/><path d="M6.4 9.2a2.6 2.6 0 0 1 2.6-2.1" stroke="#fff" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".6"/>'),
+ lock:SV('<rect x="5" y="10.5" width="14" height="10" rx="2.4"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="2.2"/>'),
+ check:SV('<path d="M4.5 12.8 9.6 18 19.5 6.5"/>',ST.replace('2.4','3')),
+ close:SV('<path d="M6 6l12 12M18 6 6 18"/>',ST)};
+function fillIcons(root){root.querySelectorAll('[data-i]').forEach(e=>{if(!e.firstChild)e.innerHTML=IC[e.dataset.i]||''})}
+const COL=['#e62ee0','#ffc61a','#2bd142','#2a8bff','#ef3022','#22c9f2','#ff9019','#9b4df2'];
+const THEMES=[
+ {n:'Ahşap',b1:'#e3b06a',b2:'#c1803a',bd:'#4a2f1f',ce:'#5b3a27',bgi:'repeating-linear-gradient(90deg,rgba(90,50,10,.10) 0 2px,transparent 2px 9px),repeating-linear-gradient(90deg,rgba(255,230,170,.09) 0 5px,transparent 5px 23px)'},
+ {n:'Gökyüzü',b1:'#8fa9ee',b2:'#6a82d8',bd:'#2b3470',ce:'#363f82'},
+ {n:'Krem',b1:'#d6bf9c',b2:'#b89c72',bd:'#3d2f2a',ce:'#4b3b34'},
+ {n:'Nane',b1:'#8bd5bb',b2:'#52ac93',bd:'#1f4a45',ce:'#295850'},
+ {n:'Lavanta',b1:'#b79cf0',b2:'#8a6fd8',bd:'#34276b',ce:'#41307e'},
+ {n:'Cevher',b1:'#4a3fe0',b2:'#1c1b72',bd:'#15126b',ce:'#262c9c'}];
+/* ---------- şekiller ---------- */
+const BASES=[["X"],["XX"],["X","X"],["XXX"],["X","X","X"],["X.","XX"],["XX","X."],[".X","XX"],["XX",".X"],["XX","XX","XX"],["XXX","XXX"],["XX","XX"],["XXX","XXX","XXX"],["XXXX"],["X","X","X","X"],["XXXXX"],["X","X","X","X","X"],
+ ["XXX",".X."],[".X.","XXX"],
+ ["XX.",".XX"],[".XX","XX."],["X.","XX",".X"],[".X","XX","X."],
+ ["X..","XXX"],["..X","XXX"],["XXX","X.."],["XXX","..X"]];
+const norm=a=>{const r=Math.min(...a.map(x=>x[0])),c=Math.min(...a.map(x=>x[1]));return a.map(([y,x])=>[y-r,x-c]).sort((p,q)=>p[0]-q[0]||p[1]-q[1])};
+const SHAPES=[],seen=new Set();
+BASES.forEach(b=>{let cs=[];b.forEach((row,r)=>[...row].forEach((ch,c)=>ch==='X'&&cs.push([r,c])));cs=norm(cs);
+ for(let i=0;i<1;i++){const k=JSON.stringify(cs);if(!seen.has(k)){seen.add(k);SHAPES.push(cs)}cs=norm(cs.map(([r,c])=>[c,-r]))}});
+const dims=s=>[Math.max(...s.map(x=>x[0]))+1,Math.max(...s.map(x=>x[1]))+1];
+/* ---------- kayıt ---------- */
+const DEF=()=>({best:0,sty:0,lang:'',vib:true,vl:2,sound:true,music:true,theme:0,st:{games:0,total:0,lines:0,placed:0,combo:0,big:0},ach:{},q:{t:0,g:null,p:{}}});
+let D=DEF();
+try{const r=JSON.parse(localStorage.getItem('blockmaster')||'null');if(r){const d=DEF();D={...d,...r,st:{...d.st,...r.st},q:{...d.q,...r.q}}}}catch(e){}
+function save(){try{localStorage.setItem('blockmaster',JSON.stringify(D))}catch(e){}}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const QDEF={lines:{t:'qLines',g:[15,20,25,30]},place:{t:'qPlace',g:[30,40,50,60]},score:{t:'qScore',g:[1000,1500,2000]},combo:{t:'qCombo',g:[3,4,5]},multi:{t:'qMulti',g:[3,4,5]},board:{t:'qBoard',g:[1]}};
+function newQuests(now){const r=rng(Math.floor(now/1000)),ks=Object.keys(QDEF);for(let i=ks.length-1;i>0;i--){const j=r()*(i+1)|0;[ks[i],ks[j]]=[ks[j],ks[i]]}
+ return{t:now,g:ks.slice(0,3).map(k=>({k,n:QDEF[k].g[r()*QDEF[k].g.length|0],d:0})),p:{lines:0,place:0,score:0,combo:0,multi:0,board:0}}}
+function dayCheck(){const n=Date.now();if(!D.q||!D.q.g||!D.q.t||n-D.q.t>=864e5||n<D.q.t)D.q=newQuests(n)}
+/* ---------- ses ---------- */
+let AC,mt;const SC=[261.6,293.7,329.6,392,440,523.3];
+function ac(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}}
+function tone(f,d,t,v,w){if(!AC)return;const o=AC.createOscillator(),g=AC.createGain(),s=AC.currentTime+(w||0);o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g).connect(AC.destination);o.start(s);o.stop(s+d)}
+function vib(p){if(!D.vib||!navigator.vibrate)return;try{const m=[0,.6,1,1.7][D.vl||2];navigator.vibrate(Array.isArray(p)?p.map((v,i)=>i%2?v:Math.round(v*m)):Math.round(p*m))}catch(e){}}
+function clearPat(L,cb,mg){if(mg)return[60,30,60,30,120,40,200];const a=[];for(let i=0;i<Math.min(L,5);i++)a.push(45+Math.min(cb,6)*8,35);a.pop();return a.length?a:[50]}
+function shake(L,mg){if(!D.vib||matchMedia('(prefers-reduced-motion:reduce)').matches)return;const a=[0,1.5,3,4.5][D.vl||2]*(1+Math.min(L,4)*.35)*(mg?1.6:1);
+ bw.animate([{transform:'translate(0,0)'},{transform:'translate('+(-a)+'px,'+a*.6+'px)'},{transform:'translate('+a+'px,'+(-a*.6)+'px)'},{transform:'translate('+(-a*.7)+'px,0)'},{transform:'translate(0,0)'}],{duration:mg?420:280,easing:'ease-out'})}
+function noise(d,f0,f1,v){if(!AC)return;const n=AC.sampleRate*d|0,bf=AC.createBuffer(1,n,AC.sampleRate),a=bf.getChannelData(0);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(1-i/n);const so=AC.createBufferSource(),fl=AC.createBiquadFilter(),g=AC.createGain();so.buffer=bf;fl.type='bandpass';fl.frequency.setValueAtTime(f0,AC.currentTime);fl.frequency.exponentialRampToValueAtTime(f1,AC.currentTime+d);g.gain.value=v;so.connect(fl).connect(g).connect(AC.destination);so.start()}
+const PN=[262,330,392,523,659,784,1046,1318,1568];
+function sfx(k,n){if(!D.sound)return;ac();
+ if(k==='u')tone(780,.07,'sine',.12);
+ if(k==='p'){tone(540,.07,'triangle',.18);tone(110,.14,'sine',.26)}
+ if(k==='b')tone(180,.15,'square',.05);
+ if(k==='c'){const b=Math.min(Math.max((n||1)-1,0),4);for(let i=0;i<5;i++){tone(PN[b+i],.24,'sine',.13,i*.07);tone(PN[b+i]*2,.18,'triangle',.04,i*.07)}}
+ if(k==='w'){noise(.55,300,3200,.22);tone(70,.5,'sine',.3)}
+ if(k==='s')[1046,1318,1568].forEach((f,i)=>tone(f,.16,'sine',.07,.15+i*.05));
+ if(k==='n'){tone(660,.09,'triangle',.08);tone(880,.12,'triangle',.08,.07)}
+ if(k==='m')[523,659,784,1047,1319].forEach((f,i)=>tone(f,.3,'triangle',.12,i*.09));
+ if(k==='o')[392,330,262,196].forEach((f,i)=>tone(f,.3,'sawtooth',.07,i*.18))}
+function music(){clearInterval(mt);if(D.music&&playing&&!paused){ac();let i=0;const q=[0,2,4,2,1,3,5,3];mt=setInterval(()=>tone(SC[q[i++%8]],.5,'triangle',.035),420)}}
+/* ---------- oyun durumu ---------- */
+let g,pcs,score,shown,combo,miss,busy,paused,playing,sel,drag,gLines,rec,tw,skin=0,bgIdx=0,cnt=Array(64).fill(0);const SKINS=15;
+const cells=[],slots=[...document.querySelectorAll('.slot')];
+const board=$('#board'),bw=$('.bw');
+for(let i=0;i<N*N;i++){const d=document.createElement('div');d.className='cell';board.appendChild(d);cells.push(d)}
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='menu')menuInfo()}
+function menuInfo(){dayCheck();const d=D.q.g.filter(q=>D.q.p[q.k]>=q.n).length,n=D.q.g.length;$('#mQ').innerHTML=t('dailyQ')+' <b>'+d+'/'+n+'</b><div class="bar"><i style="width:'+d/n*100+'%"></i></div>'}
+function buildMenu(){const mk=(w,o)=>[...w].map((ch,i)=>'<i style="--c:'+COL[(i+o)%8]+';--d:'+(i*.08+o*.03)+'s">'+ch+'</i>').join('');$('#lg1').innerHTML=mk('BLOCK',0);$('#lg2').innerHTML=mk('SNAPPY',5);let h='';for(let i=0;i<12;i++){const z=16+Math.random()*30;h+='<i class="cell f fb" style="--c:'+COL[i%8]+';width:'+z+'px;height:'+z+'px;left:'+Math.random()*100+'%;animation-duration:'+(10+Math.random()*12)+'s;animation-delay:-'+Math.random()*20+'s"></i>'}$('#fl').innerHTML=h}
+function paint(t){const r=document.documentElement.style;['b1','b2','bd','ce'].forEach(k=>r.setProperty('--'+k,t[k]));r.setProperty('--bgi',t.bgi||'linear-gradient(#0000,#0000)')}
+function applyTheme(){bgIdx=D.theme;const t=THEMES[D.theme],r=document.documentElement.style;paint(t)}
+function fit(){
+  const vw=window.visualViewport?window.visualViewport.width:innerWidth;
+  const vh=window.visualViewport?window.visualViewport.height:innerHeight;
+  const landscape=vw>vh, reserved=landscape?222:300;
+  const available=Math.max(160,vh-reserved);
+  const boardWidth=Math.min(vw*.94,available,520);
+  const cs=Math.max(18,Math.floor((boardWidth-26)/8));
+  const root=document.documentElement.style;
+  root.setProperty('--cs',cs+'px');
+  root.setProperty('--ts',Math.max(11,Math.floor(cs*.48))+'px');
+
+  // Mobilde yüksek DPR canvas çizimini gereksiz yere ağırlaştırmasın.
+  const f=$('#fx'),dpr=Math.min(window.devicePixelRatio||1,1.5);
+  f.style.width=vw+'px';f.style.height=vh+'px';
+  f.width=Math.round(vw*dpr);f.height=Math.round(vh*dpr);
+  const ctx=f.getContext('2d');
+  if(ctx)ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function canPlace(s,r,c){return s.every(([a,b])=>{const y=r+a,x=c+b;return y>=0&&y<N&&x>=0&&x<N&&g[y][x]<0})}
+function fits(s){for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(canPlace(s,r,c))return true;return false}
+const NB=[[1,0],[-1,0],[0,1],[0,-1]];
+function canP(G,s,r,c){return s.every(([a,b])=>{const y=r+a,x=c+b;return y>=0&&y<N&&x>=0&&x<N&&G[y][x]<0})}
+/* şekli yerleştir, dolan çizgileri temizle -> [yeni tahta, temizlenen çizgi sayısı] */
+function simPl(G,s,r,c){const n=G.map(x=>x.slice());s.forEach(([a,b])=>n[r+a][c+b]=0);const R=[],C=[];
+ for(let k=0;k<N;k++){if(n[k].every(v=>v>=0))R.push(k);if(n.every(w=>w[k]>=0))C.push(k)}
+ R.forEach(y=>{for(let x=0;x<N;x++)n[y][x]=-1});C.forEach(x=>{for(let y=0;y<N;y++)n[y][x]=-1});return[n,R.length+C.length]}
+function simPlace(G,s,r,c){return simPl(G,s,r,c)[0]}
+/* YAPAY ZEKÂ: tahtanın kalitesi — kullanılamaz küçük boşluklar kötü, dolmaya yakın çizgiler iyi */
+function evalBoard(G){let e=0;const seen=Array.from({length:N},()=>Array(N).fill(false));let reg=0;
+ for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(G[r][c]<0&&!seen[r][c]){let n=0;const st=[[r,c]];seen[r][c]=true;
+  while(st.length){const [y,x]=st.pop();n++;for(const [dy,dx] of NB){const a=y+dy,b=x+dx;if(a>=0&&a<N&&b>=0&&b<N&&G[a][b]<0&&!seen[a][b]){seen[a][b]=true;st.push([a,b])}}}
+  reg++;if(n<4)e-=n*14;else if(n<6)e-=n*2}
+ e-=reg*3;
+ for(let k=0;k<N;k++){let rc=0,cc=0;for(let q=0;q<N;q++){if(G[k][q]>=0)rc++;if(G[q][k]>=0)cc++}
+  if(rc>=5&&rc<N)e+=(rc-4)*3;if(cc>=5&&cc<N)e+=(cc-4)*3}
+ return e}
+/* bir şeklin bu tahtadaki en iyi yeri */
+function bestFor(G,s){let best=null;for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(canP(G,s,r,c)){
+  let t=0;for(const [a,b] of s)for(const [dy,dx] of NB){const y=r+a+dy,x=c+b+dx;if(y<0||y>=N||x<0||x>=N||G[y][x]>=0)t++}
+  const [n,L]=simPl(G,s,r,c),sc=L*75+evalBoard(n)+t/s.length*2.5;
+  if(!best||sc>best.sc)best={sc,r,c,grid:n,L}}
+ return best}
+/* üçlüyü sırayla seç: her parça, bir öncekinin yerleştiği tahtaya göre en uygun olanlar arasından gelir */
+let AIP=[.92,.99];
+function gen(){const rnd=()=>({s:SHAPES[Math.random()*SHAPES.length|0],c:Math.random()*COL.length|0});
+ let G=g.map(x=>x.slice());const p=[];
+ for(let k=0;k<3;k++){const L=[];
+  for(const s of SHAPES){if(p.some(q=>q.s===s))continue;const b=bestFor(G,s);if(b)L.push({s,b,v:b.sc+Math.random()*7})}
+  if(!L.length){p.push(rnd());continue}
+  L.sort((a,b)=>b.v-a.v);const u=Math.random(),pk=L[u<AIP[0]?0:u<AIP[1]?Math.min(1,L.length-1):Math.min(2,L.length-1)];
+  p.push({s:pk.s,c:Math.random()*COL.length|0});G=pk.b.grid}
+ if(!p.some(x=>fits(x.s)))for(let t=0;t<80&&!p.some(x=>fits(x.s));t++)p[2]=rnd();
+ return p.sort(()=>Math.random()-.5)}
+function start(){ac();dayCheck();g=Array.from({length:N},()=>Array(N).fill(-1));cnt=Array(N*N).fill(0);pk.fill('');sc.fill(null);{const a=Math.random()*(N-1)|0,b=Math.random()*(N-2)|0,rc=()=>Math.random()*COL.length|0;for(let c=0;c<N;c++){if(c!==a&&c!==a+1)g[N-1][c]=rc();if(c<b||c>b+2)g[N-2][c]=rc()}}score=0;shown=0;combo=0;miss=0;busy=false;paused=false;sel=-1;gLines=0;rec=false;drag=null;skin=D.sty||0;document.body.dataset.skin=skin;bw.classList.remove('cel');board.classList.remove('rb');applyTheme();playing=true;
+ D.st.games++;save();board.classList.remove('dead');closeM(true);show('game');fit();pcs=gen();render();spawnFx();setScore(true);music()}
+const pk=new Array(N*N).fill(''),sc=[null,null,null];
+function render(){
+ if(!drag){const gs=document.querySelectorAll('.ghost');if(gs.length)gs.forEach(x=>x.remove())}
+ for(let i=0;i<N*N;i++){const v=g[i/N|0][i%N],n=cnt[i]>0?cnt[i]:0,k=v+'|'+n;if(pk[i]===k)continue;pk[i]=k;const el=cells[i];el.className='cell'+(v>=0?' f':'')+(n?' bn':'');el.dataset.n=n||'';el.style.setProperty('--c',v>=0?COL[v]:'')}
+ const gb=$('#gBest');if(gb.textContent!=D.best)gb.textContent=D.best;
+ slots.forEach((el,i)=>{const p=pcs[i];el.classList.toggle('sel',sel===i);el.classList.remove('dim');if(sc[i]===p)return;sc[i]=p;
+  if(!p){el.innerHTML='';return}
+  const w=dims(p.s)[1];el.innerHTML='<div class="pc" style="grid-template-columns:repeat('+w+',var(--ts))">'+p.s.map(([r,c])=>'<i class="cell f" style="--c:'+COL[p.c]+';grid-area:'+(r+1)+'/'+(c+1)+'"></i>').join('')+'</div>'})}
+function setScore(now){const el=$('#score');cancelAnimationFrame(tw);const sh=$('#sh'),hb=Math.min(combo||0,10)*.05;sh.style.setProperty('--hs',1.3+hb);setTimeout(()=>sh.style.setProperty('--hs',1+hb),180);sh.style.color='hsl('+((330+Math.min(combo||0,12)*28)%360)+' 90% 65%)';
+ const step=()=>{shown+=Math.max(1,Math.ceil((score-shown)/6));if(shown>score)shown=score;el.textContent=shown;if(shown<score)tw=requestAnimationFrame(step)};
+ if(now){shown=score;el.textContent=score}else{el.classList.add('bump');setTimeout(()=>el.classList.remove('bump'),150);step()}}
+/* ---------- önizleme ---------- */
+function clearPrev(){cells.forEach(e=>{e.classList.remove('pv','bad','hl')})}
+function origin(){const a=cells[0].getBoundingClientRect(),b=cells[1].getBoundingClientRect();return{x:a.left,y:a.top,p:b.left-a.left}}
+function snap(i,r,c){const p=pcs[i];if(!p)return null;for(const [dr,dc] of [[0,0],[0,-1],[0,1],[-1,0],[1,0],[-1,-1],[-1,1],[1,-1],[1,1]])if(canPlace(p.s,r+dr,c+dc))return[r+dr,c+dc];return null}
+function shadow(i,sp){const key=sp?sp[0]*N+sp[1]:-1;if(drag){if(drag.k===key)return;drag.k=key}clearPrev();if(!sp)return;const p=pcs[i];p.s.forEach(([a,b])=>{const e=cells[(sp[0]+a)*N+sp[1]+b];e.style.setProperty('--c',COL[p.c]);e.classList.add('pv')})}
+function preview(i,r,c){clearPrev();const p=pcs[i];if(!p)return false;const ok=canPlace(p.s,r,c);return ok;
+ p.s.forEach(([a,b])=>{const y=r+a,x=c+b;if(y>=0&&y<N&&x>=0&&x<N){const e=cells[y*N+x];e.style.setProperty('--c',COL[p.c]);e.classList.add('pv');if(!ok)e.classList.add('bad')}});
+ if(ok){const t=g.map(r=>r.slice());p.s.forEach(([a,b])=>t[r+a][c+b]=1);
+  for(let k=0;k<N;k++){if(t[k].every(v=>v>=0))for(let x=0;x<N;x++)cells[k*N+x].classList.add('hl');if(t.every(rw=>rw[k]>=0))for(let y=0;y<N;y++)cells[y*N+k].classList.add('hl')}}
+ return ok}
+/* ---------- sürükle-bırak ---------- */
+function cancelDrag(){drag=null;document.querySelectorAll('.ghost').forEach(x=>x.remove());clearPrev();slots.forEach(x=>x.classList.remove('dim'))}
+slots.forEach((el,i)=>el.addEventListener('pointerdown',e=>{
+ cancelDrag();if(busy||paused||!playing||!pcs[i])return;e.preventDefault();ac();sfx('u');drag={i,id:e.pointerId,x:e.clientX,y:e.clientY,moved:false,t:e.pointerType,gh:null}}));
+addEventListener('pointermove',e=>{
+ if(drag&&e.pointerId!==drag.id)return;
+ if(drag&&e.pointerType==='mouse'&&e.buttons===0){cancelDrag();return}
+ if(drag){const d=drag;if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<6)return;
+  if(!d.moved){d.moved=true;const p=pcs[d.i],[h,w]=dims(p.s),gh=document.createElement('div');gh.className='ghost';
+   gh.style.gridTemplateColumns='repeat('+w+',var(--cs))';gh.innerHTML=p.s.map(([r,c])=>'<i class="cell f" style="--c:'+COL[p.c]+';grid-area:'+(r+1)+'/'+(c+1)+'"></i>').join('');
+   document.body.appendChild(gh);d.gh=gh;d.w=gh.offsetWidth;d.h=gh.offsetHeight;d.o=origin();slots[d.i].classList.add('dim')}
+  const gh=d.gh,w=d.w,h=d.h;
+  const left=e.clientX-w/2,top=d.t==='mouse'?e.clientY-h/2:e.clientY-h-34;
+  gh.style.transform='translate3d('+left+'px,'+top+'px,0) scale(1.04)';
+  const o=d.o,c=Math.round((left-o.x)/o.p),r=Math.round((top-o.y)/o.p);d.r=r;d.c=c;shadow(d.i,snap(d.i,r,c));return}});
+function endDrag(e){if(!drag){cancelDrag();return}if(e.pointerId!==drag.id)return;const d=drag;cancelDrag();
+ if(!d.moved)return;
+ const sp=e.type==='pointercancel'?null:snap(d.i,d.r,d.c);if(sp)place(d.i,sp[0],sp[1]);else sfx('b')}
+addEventListener('pointerup',endDrag);addEventListener('pointercancel',endDrag);addEventListener('blur',cancelDrag);
+/* ---------- yerleştirme ve temizleme ---------- */
+function place(i,r,c){const p=pcs[i],n=p.s.length;
+ p.s.forEach(([a,b])=>g[r+a][c+b]=p.c);pcs[i]=null;sel=-1;sfx('p');vib(12);
+ const rows=[],cols=[];for(let k=0;k<N;k++){if(g[k].every(v=>v>=0))rows.push(k);if(g.every(rw=>rw[k]>=0))cols.push(k)}
+ const L=rows.length+cols.length;let gain=n*2;
+ if(L){combo++;miss=0;gain+=L*14+(L>1?L*L*7:0)+(combo>1?combo*14:0)}else{miss++;if(miss>=4)combo=0}
+ const cl=new Set();rows.forEach(y=>{for(let x=0;x<N;x++)cl.add(y*N+x)});cols.forEach(x=>{for(let y=0;y<N;y++)cl.add(y*N+x)});
+ let bonus=0;cl.forEach(k=>{if(cnt[k]>0)bonus+=cnt[k]*10});gain+=bonus;
+ for(let k=0;k<N*N;k++)if(cnt[k]>0&&!cl.has(k))cnt[k]--;
+ if(!L&&Math.random()<.14&&cnt.filter(v=>v>0).length<3){const [a,b]=p.s[Math.random()*p.s.length|0];cnt[(r+a)*N+c+b]=5+(Math.random()*5|0)}
+ const filled=g.flat().filter(v=>v>=0).length;
+ score+=gain;gLines+=L;
+ const S=D.st;S.placed+=n>0?1:0;S.total+=gain;S.lines+=L;S.combo=Math.max(S.combo,combo);if(L>=3)S.big++;
+ dayCheck();D.q.p.place=(D.q.p.place||0)+1;D.q.p.lines=(D.q.p.lines||0)+L;D.q.p.score=Math.max(D.q.p.score||0,score);D.q.p.combo=Math.max(D.q.p.combo||0,combo);if(L>=2)D.q.p.multi=(D.q.p.multi||0)+1;
+ if(score>D.best){D.best=score;rec=true}
+ render();p.s.forEach(([a,b])=>cells[(r+a)*N+c+b].classList.add('pop'));setScore();
+ {const o0=origin();p.s.forEach(([a,b])=>floatTxt('+1',o0.x+(c+b+.5)*o0.p,o0.y+(r+a+.5)*o0.p,false,true));if(L)floatTxt('+'+gain,innerWidth/2,o0.y+N*o0.p*.28,true);{const k=p.s[Math.random()*p.s.length|0];sparkles(o0.x+(c+k[1]+.85)*o0.p,o0.y+(r+k[0]+.12)*o0.p,2)}}
+ if(L){busy=true;const set=new Set();rows.forEach(y=>{for(let x=0;x<N;x++)set.add(y*N+x)});cols.forEach(x=>{for(let y=0;y<N;y++)set.add(y*N+x)});
+  const o=origin(),mg=L>=4;set.forEach(k=>{const el=cells[k];el.classList.add(mg?'fall':'clr');if(mg){el.style.setProperty('--dx',(Math.random()*160-80)+'px');el.style.setProperty('--rt',(Math.random()*720-360)+'deg')}burst(o.x+(k%N)*o.p+cells[0].offsetWidth/2,o.y+(k/N|0)*o.p+cells[0].offsetHeight/2,COL[g[k/N|0][k%N]])});
+  sfx('c',combo);vib(clearPat(L,combo,mg));shake(L,mg);if(L>=2||mg)sfx('w');sfx('s');beams(rows,cols);set.forEach(k=>{if(k%2)sparkles(o.x+(k%N)*o.p+20,o.y+(k/N|0)*o.p+20,1)});flyStars([...set].filter((_,i)=>i%3===0).map(k=>[o.x+(k%N)*o.p+20,o.y+(k/N|0)*o.p+20]));
+  if(mg){const w=t('g'+Math.min(L,5));mega(w,combo>1?t('combo')+' '+combo:'');mascot(w,'wow')}else praise(L,combo,filled);
+  setTimeout(()=>{set.forEach(k=>{g[k/N|0][k%N]=-1;cnt[k]=0});if(g.every(r=>r.every(v=>v<0))){nextStyle();score+=300;D.st.total+=300;if(score>D.best){D.best=score;rec=true}setScore();if(!mg)mega(t('perfect'),'');dayCheck();D.q.p.board=(D.q.p.board||0)+1;chk();save()}render();busy=false;after()},mg?800:230)}
+ else after();
+ chk();save()}
+function after(){if(pcs.every(p=>!p)){pcs=gen();render();spawnFx()}
+ if(!pcs.some(p=>p&&fits(p.s)))over()}
+function bigText(h,m,k){const e=$('#pop');e.innerHTML=h;e.classList.remove('go','mega','ep','lg','cm');void e.offsetWidth;e.classList.add(m?'mega':'go');if(k)e.classList.add(k)}
+function praise(L,cb,f){let h,k='';
+ if(f>=44){h=t('comeback');k='lg'}
+ else if(cb>=8){h=t('master');k='cm'}
+ else if(cb>=2)h=t('combo')+' <em>'+cb+'</em>'+(cb>=4?'<small>'+t('rush')+'</small>':'');
+ else{h=t('g'+Math.min(L,5));if(L>=3)k='ep'}
+ bigText(h,false,k);const o=origin();for(let i=0;i<22;i++)sparkles(o.x+Math.random()*N*o.p,o.y+N*o.p*(.3+Math.random()*.4),1)}
+function beams(rows,cols){const p=origin().p,cs=cells[0].offsetWidth,mk=(h,k)=>{const e=document.createElement('div');e.className='beam'+(h?'':' v');e.style.setProperty('--bc',COL[h?g[k][0]:g[0][k]]);
+  if(h){e.style.left='6px';e.style.top=(6+k*p)+'px';e.style.width=(N*p-2)+'px';e.style.height=cs+'px'}else{e.style.top='6px';e.style.left=(6+k*p)+'px';e.style.height=(N*p-2)+'px';e.style.width=cs+'px'}
+  bw.appendChild(e);setTimeout(()=>e.remove(),700)};rows.forEach(k=>mk(true,k));cols.forEach(k=>mk(false,k))}
+function flyStars(pts){const t=$('#sh').getBoundingClientRect(),tx=t.left+t.width/2,ty=t.top+t.height/2;pts.slice(0,8).forEach(([x,y],i)=>{const e=document.createElement('div');e.className='star';e.innerHTML=IC.star;e.style.left=x+'px';e.style.top=y+'px';document.body.appendChild(e);setTimeout(()=>{e.style.transform='translate('+(tx-x)+'px,'+(ty-y)+'px) scale(.5)';e.style.opacity='.2'},30+i*50);setTimeout(()=>e.remove(),900+i*50)})}
+function spawnFx(){slots.forEach(el=>{const pc=el.firstChild;if(pc){pc.classList.add('in');const r=el.getBoundingClientRect();sparkles(r.left+r.width/2,r.top+r.height/2,6)}});sfx('n')}
+function sparkles(x,y,n){if(ps.length>=MAX_PARTICLES)return;n=Math.min(n,MAX_PARTICLES-ps.length);for(let i=0;i<n;i++)ps.push({x,y,vx:(Math.random()-.5)*5,vy:(Math.random()-.5)*5-1,l:1.2,dl:.02,c:Math.random()<.6?'#ffe27a':'#fff',z:5+Math.random()*8,k:1});if(!raf)raf=requestAnimationFrame(loop)}
+function floatTxt(t,x,y,big,sm){const e=document.createElement('div');e.className='fs'+(big?' bg':'')+(sm?' sm':'');e.textContent=t;e.style.left=x+'px';e.style.top=y+'px';document.body.appendChild(e);setTimeout(()=>e.remove(),900)}
+function shiftBg(){bgIdx=(bgIdx+1)%THEMES.length;const t=THEMES[bgIdx],r=document.documentElement.style;paint(t)}
+function mega(h,sub){bw.classList.add('cel');shiftBg();
+ const hh=$('#heart');hh.classList.remove('on');void hh.offsetWidth;hh.classList.add('on');
+ board.classList.remove('rb');void board.offsetWidth;board.classList.add('rb');
+ bigText(h+(sub?'<small>'+sub+'</small>':''),true);
+ confetti(110);sfx('m')}
+function confetti(n){n=Math.min(n,Math.max(0,MAX_PARTICLES-ps.length));for(let i=0;i<n;i++)ps.push({x:Math.random()*innerWidth,y:-20-Math.random()*220,vx:(Math.random()-.5)*3,vy:1+Math.random()*3,l:1.8,dl:.011,c:COL[i%8],z:6+Math.random()*9});if(!raf)raf=requestAnimationFrame(loop)}
+const GP='M0 -10L3 -3L10 0L3 3L0 10L-3 3L-10 0L-3 -3Z';
+function ghost(e){e=e||'happy';
+ const spk=(x,y,k,c,cl)=>'<g transform="translate('+x+' '+y+') scale('+k+')"><path class="tw '+cl+'" d="'+GP+'" fill="'+c+'"/></g>';
+ const eyes={happy:'<path d="M70 98q9-14 18 0M112 98q9-14 18 0" fill="none" stroke="#2b1b6b" stroke-width="5" stroke-linecap="round"/>',
+  wow:'<g class="gb2"><ellipse cx="80" cy="98" rx="9" ry="12" fill="#1b1250"/><ellipse cx="120" cy="98" rx="9" ry="12" fill="#1b1250"/><circle cx="83" cy="93" r="3.4" fill="#fff"/><circle cx="123" cy="93" r="3.4" fill="#fff"/></g>',
+  sad:'<path d="M68 92q12 10 22 0M110 92q10 10 22 0" fill="none" stroke="#2b1b6b" stroke-width="5" stroke-linecap="round"/><path d="M78 102q-6 12 0 18q6-6 0-18zM122 102q-6 12 0 18q6-6 0-18z" fill="#7fd1ff"/>'};
+ eyes.star=eyes.happy;
+ const mouth={happy:'<path d="M88 110q12 22 24 0z" fill="#5a1a6b" stroke="#2b1b6b" stroke-width="3" stroke-linejoin="round"/><path d="M93 118q7 6 14 0q-7-3-14 0z" fill="#ff7aa8"/>',
+  wow:'<ellipse cx="100" cy="122" rx="7" ry="9" fill="#5a1a6b"/>',
+  sad:'<path d="M88 130q12-12 24 0" fill="none" stroke="#2b1b6b" stroke-width="5" stroke-linecap="round"/>'};
+ mouth.star=mouth.happy;
+ const sad=e==='sad',star=e==='star',arm=(d,x,rot,cl)=>'<g class="'+cl+'"'+(rot?' transform="rotate('+rot+' '+x+' 118)"':'')+'><path d="'+d+'" fill="#eef1ff" stroke="#8f86ff" stroke-width="3" stroke-linejoin="round"/></g>';
+ const body='M100 50C62 50 44 82 44 120C44 150 40 172 26 192C44 190 54 184 64 174C72 188 86 194 98 186C108 196 124 194 132 182C142 190 158 190 172 190C160 172 156 148 156 120C156 82 138 50 100 50Z';
+ const hat='<g class="ht"><ellipse cx="100" cy="62" rx="68" ry="16" fill="#3a2194"/><ellipse cx="100" cy="59" rx="68" ry="15" fill="#5636c6"/><path d="M58 58C62 36 82 20 100 8C106 20 122 20 134 10C130 28 138 44 142 58C120 64 80 64 58 58Z" fill="#4a2cb4"/><path d="M64 52C70 38 84 24 98 14" stroke="#8a6cff" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/><path d="M59 51C80 59 122 59 141 51L142 58C122 66 80 66 58 58Z" fill="#7a3ff0"/><rect x="88" y="47" width="24" height="18" rx="3" fill="#ffb81c" stroke="#d98a00" stroke-width="2"/><rect x="94" y="52" width="12" height="8" rx="1.5" fill="#5636c6"/></g>';
+ return '<svg viewBox="0 0 200 220" aria-hidden="true">'+
+ '<path class="gt" d="M16 204C60 218 130 216 190 198" fill="none" stroke="#b36bff" stroke-width="7" stroke-linecap="round" opacity=".85"/><path class="gt" d="M30 206C70 214 120 212 166 202" fill="none" stroke="#e0b8ff" stroke-width="3" stroke-linecap="round" opacity=".8"/>'+
+ '<path d="'+body+'" fill="#eef1ff" stroke="#8f86ff" stroke-width="3" stroke-linejoin="round"/><path d="M156 120C156 148 160 172 172 190C158 190 142 190 132 182C146 160 150 140 148 112Z" fill="#b9c7ff" opacity=".55"/><ellipse cx="72" cy="86" rx="9" ry="16" fill="#fff" opacity=".85" transform="rotate(18 72 86)"/>'+
+ arm('M50 120C34 116 22 102 24 88C36 90 46 98 56 106Z',50,sad?-85:0,sad?'':'gL')+arm('M150 120C166 116 178 102 176 88C164 90 154 98 144 106Z',150,sad?85:star?105:0,sad||star?'':'gR')+
+ '<circle cx="66" cy="112" r="8" fill="#ff9ec9" opacity=".6"/><circle cx="134" cy="112" r="8" fill="#ff9ec9" opacity=".6"/>'+eyes[e]+mouth[e]+
+ (star?'<g transform="translate(152 152)"><path d="M0 -22L6.5 -7L22 -6L10 4L14 20L0 12L-14 20L-10 4L-22 -6L-6.5 -7Z" fill="#ffd21f" stroke="#c98a00" stroke-width="3" stroke-linejoin="round"/></g>':'')+
+ hat+spk(28,70,1.1,'#e9b6ff','a')+spk(174,58,.9,'#9fd8ff','b')+spk(24,150,.8,'#ffd2ff','c')+(star?spk(178,150,1,'#ffe27a','a')+spk(130,24,.8,'#ffe27a','b'):'')+'</svg>'}
+function mascot(tx,e){const m=$('#mascot');m.querySelector('.say').textContent=tx;m.querySelector('.gm').innerHTML=ghost(e||'star');m.onanimationend=()=>m.classList.remove('on');m.classList.remove('on');void m.offsetWidth;m.classList.add('on')}
+function setSty(d){D.sty=((D.sty||0)+d+SKINS)%SKINS;save();skin=D.sty;document.body.dataset.skin=skin;more()}
+function nextStyle(){skin=(skin+1)%SKINS;
+ const f=document.createElement('div');f.className='flash';document.body.appendChild(f);setTimeout(()=>f.remove(),750);
+ const rg=document.createElement('div');rg.className='ring';bw.appendChild(rg);setTimeout(()=>rg.remove(),1000);
+ slots.forEach(el=>{const pc=el.firstChild;if(pc){pc.classList.remove('in');pc.classList.add('flip')}});
+ setTimeout(()=>{document.body.dataset.skin=skin},330);
+ setTimeout(()=>slots.forEach(el=>el.firstChild&&el.firstChild.classList.remove('flip')),850);
+ mascot(t('newStyle',styName(skin)),'star')}
+function over(){playing=false;music();sfx('o');vib([80,50,80,50,220]);save();board.classList.add('dead');
+ setTimeout(()=>modal('<div class="gm">'+ghost('sad')+'</div><h2>'+t('gameOver')+'</h2><div class="big">'+score+'</div><p style="text-align:center">'+(rec?'<span data-i="star" style="font-size:22px"></span> '+t('newRec'):t('recordN',D.best))+'<br>'+t('linesL')+': '+gLines+'</p><button class="btn play" onclick="start()">'+t('playAgain')+'</button><button class="btn" onclick="toMenu()">'+t('home')+'</button>'),1000)}
+/* ---------- parçacıklar ---------- */
+const fx=$('#fx'),cx=fx.getContext('2d');let ps=[],raf=0;
+const MAX_PARTICLES=matchMedia('(max-width: 700px)').matches?150:280;
+function burst(x,y,c){if(ps.length>=MAX_PARTICLES)return;for(let i=0;i<5;i++){const a=Math.random()*6.28,s=2+Math.random()*5;ps.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,l:1,c,z:4+Math.random()*7})}if(!raf)raf=requestAnimationFrame(loop)}
+function loop(){cx.clearRect(0,0,fx.clientWidth,fx.clientHeight);let j=0;
+ for(let i=0;i<ps.length;i++){const p=ps[i];p.x+=p.vx;p.y+=p.vy;p.vy+=p.k?.03:.25;p.l-=p.dl||.025;if(p.l<=0)continue;ps[j++]=p;cx.globalAlpha=p.l>1?1:p.l;cx.fillStyle=p.c;
+  if(p.k){cx.save();cx.translate(p.x,p.y);cx.rotate(p.r=(p.r||0)+.08);cx.beginPath();for(let q=0;q<8;q++){const an=q*Math.PI/4,rr=q%2?p.z*.25:p.z;cx.lineTo(Math.cos(an)*rr,Math.sin(an)*rr)}cx.fill();cx.restore()}else cx.fillRect(p.x-p.z/2,p.y-p.z/2,p.z,p.z)}
+ ps.length=j;raf=j?requestAnimationFrame(loop):0;if(!raf)cx.clearRect(0,0,fx.width,fx.height)}
+/* ---------- çoklu dil (TR EN DE FR ES PT RU JA IT) ---------- */
+const LN=['tr','en','de','fr','es','pt','ru','ja','it'],LNAME={tr:'Türkçe',en:'English',de:'Deutsch',fr:'Français',es:'Español',pt:'Português',ru:'Русский',ja:'日本語',it:'Italiano'};
+const T={"tag":["Blokları diz, çizgileri patlat, kombo yap!","Stack blocks, blast lines, chain combos!","Blöcke stapeln, Reihen sprengen, Kombos jagen!","Empile, fais exploser les lignes, enchaîne les combos !","¡Apila bloques, revienta líneas y encadena combos!","Empilhe blocos, exploda linhas e faça combos!","Складывай блоки, взрывай линии, делай комбо!","ブロックを置いてラインを消し、コンボを決めよう！","Impila i blocchi, fai esplodere le linee e crea combo!"],"play":["OYNA","PLAY","SPIELEN","JOUER","JUGAR","JOGAR","ИГРАТЬ","プレイ","GIOCA"],"quests":["Görevler","Quests","Aufgaben","Quêtes","Misiones","Missões","Задания","ミッション","Missioni"],"ach":["Başarımlar","Achievements","Erfolge","Succès","Logros","Conquistas","Достижения","実績","Traguardi"],"stats":["İstatistik","Statistics","Statistik","Statistiques","Estadísticas","Estatísticas","Статистика","統計","Statistiche"],"howto":["Nasıl Oynanır","How to Play","Spielanleitung","Comment jouer","Cómo jugar","Como jogar","Как играть","遊び方","Come si gioca"],"dailyQ":["Günlük görevler","Daily quests","Tägliche Aufgaben","Quêtes du jour","Misiones diarias","Missões diárias","Ежедневные задания","デイリーミッション","Missioni giornaliere"],"settings":["Ayarlar","Settings","Einstellungen","Paramètres","Ajustes","Configurações","Настройки","設定","Impostazioni"],"sound":["Ses","Sound","Ton","Son","Sonido","Som","Звук","効果音","Suoni"],"music":["Müzik","Music","Musik","Musique","Música","Música","Музыка","音楽","Musica"],"vib":["Titreşim","Vibration","Vibration","Vibration","Vibración","Vibração","Вибрация","振動","Vibrazione"],"vibNote":["Titreşim telefonda çalışır, bilgisayarda ekran sarsılır.","Vibration works on phones; on desktop the screen shakes.","Vibration funktioniert am Handy, am PC wackelt der Bildschirm.","La vibration fonctionne sur téléphone ; sur ordinateur, l’écran tremble.","La vibración funciona en el móvil; en PC la pantalla tiembla.","A vibração funciona no celular; no PC a tela treme.","Вибрация работает на телефоне; на компьютере трясётся экран.","振動はスマホで動作します。PCでは画面が揺れます。","La vibrazione funziona su smartphone; sul PC lo schermo trema."],"moreSet":["Daha Fazla Ayar","More Settings","Weitere Einstellungen","Plus de paramètres","Más ajustes","Mais configurações","Дополнительно","その他の設定","Altre impostazioni"],"home":["Ana Menü","Home","Hauptmenü","Accueil","Inicio","Início","Главная","ホーム","Home"],"restart":["Baştan Başlat","Replay","Neustart","Rejouer","Reiniciar","Reiniciar","Заново","リプレイ","Ricomincia"],"defSkin":["Varsayılan Tema","Default Theme","Standard-Design","Thème par défaut","Tema predeterminado","Tema padrão","Тема по умолчанию","デフォルトテーマ","Tema predefinito"],"themeT":["Tema","Theme","Design","Thème","Tema","Tema","Тема","テーマ","Tema"],"blockStyle":["Blok stili","Block style","Blockstil","Style des blocs","Estilo de bloques","Estilo dos blocos","Стиль блоков","ブロックスタイル","Stile dei blocchi"],"language":["Dil","Language","Sprache","Langue","Idioma","Idioma","Язык","言語","Lingua"],"resetData":["Verileri Sıfırla","Reset Data","Daten zurücksetzen","Réinitialiser les données","Restablecer datos","Redefinir dados","Сбросить данные","データをリセット","Reimposta dati"],"confirmReset":["Tüm kayıtlar silinsin mi?","Delete all saved data?","Alle Daten löschen?","Supprimer toutes les données ?","¿Borrar todos los datos?","Apagar todos os dados?","Удалить все данные?","すべてのデータを削除しますか？","Eliminare tutti i dati?"],"resume":["Devam","Resume","Weiter","Reprendre","Continuar","Continuar","Продолжить","再開","Riprendi"],"close":["Kapat","Close","Schließen","Fermer","Cerrar","Fechar","Закрыть","閉じる","Chiudi"],"ok":["Tamam","OK","OK","OK","Aceptar","OK","ОК","OK","OK"],"gameOver":["Oyun Bitti","Game Over","Spiel vorbei","Partie terminée","Fin del juego","Fim de jogo","Игра окончена","ゲームオーバー","Partita finita"],"newRec":["Yeni rekor!","New record!","Neuer Rekord!","Nouveau record !","¡Nuevo récord!","Novo recorde!","Новый рекорд!","新記録！","Nuovo record!"],"recordN":["Rekor: {0}","Best: {0}","Rekord: {0}","Record : {0}","Récord: {0}","Recorde: {0}","Рекорд: {0}","ベスト: {0}","Record: {0}"],"linesL":["Temizlenen çizgi","Lines cleared","Gelöschte Linien","Lignes effacées","Líneas borradas","Linhas limpas","Очищено линий","消したライン","Linee eliminate"],"playAgain":["Tekrar Oyna","Play Again","Nochmal spielen","Rejouer","Jugar de nuevo","Jogar de novo","Играть снова","もう一度","Gioca ancora"],"bestScore":["En yüksek skor","High score","Highscore","Meilleur score","Mejor puntuación","Melhor pontuação","Рекорд","ハイスコア","Record"],"gamesPl":["Oynanan oyun","Games played","Gespielte Spiele","Parties jouées","Partidas jugadas","Partidas jogadas","Сыграно игр","プレイ回数","Partite giocate"],"totalPts":["Toplam puan","Total points","Gesamtpunkte","Points totaux","Puntos totales","Pontos totais","Всего очков","合計スコア","Punti totali"],"placedB":["Yerleştirilen blok","Blocks placed","Gesetzte Blöcke","Blocs posés","Bloques colocados","Blocos colocados","Размещено блоков","置いたブロック","Blocchi piazzati"],"maxCombo":["En yüksek kombo","Best combo","Beste Kombo","Meilleur combo","Mejor combo","Melhor combo","Лучшее комбо","最大コンボ","Combo migliore"],"achT":["Başarım: {0}","Achievement: {0}","Erfolg: {0}","Succès : {0}","Logro: {0}","Conquista: {0}","Достижение: {0}","実績: {0}","Traguardo: {0}"],"a_first":["İlk satır","First line","Erste Linie","Première ligne","Primera línea","Primeira linha","Первая линия","初ライン","Prima linea"],"a_first_d":["İlk satırı veya sütunu temizle","Clear your first row or column","Lösche deine erste Reihe oder Spalte","Efface ta première ligne ou colonne","Borra tu primera fila o columna","Limpe sua primeira linha ou coluna","Очисти первую строку или столбец","最初の行か列を消そう","Elimina la prima riga o colonna"],"a_c3":["Kombo ustası","Combo master","Kombo-Meister","Maître du combo","Maestro del combo","Mestre do combo","Мастер комбо","コンボの達人","Maestro delle combo"],"a_c3_d":["3'lü kombo yap","Reach a 3x combo","Erreiche eine 3er-Kombo","Atteins un combo x3","Consigue un combo x3","Faça um combo x3","Сделай комбо ×3","3コンボを決める","Ottieni una combo x3"],"a_big":["Üçlü darbe","Triple strike","Dreifachschlag","Triple frappe","Golpe triple","Golpe triplo","Тройной удар","トリプルストライク","Triplo colpo"],"a_big_d":["Tek hamlede 3+ çizgi temizle","Clear 3+ lines in one move","Lösche 3+ Linien in einem Zug","Efface 3+ lignes en un coup","Borra 3+ líneas de una vez","Limpe 3+ linhas de uma vez","Очисти 3+ линии за ход","1手で3ライン以上消す","Elimina 3+ linee in una mossa"],"pts":["{0} puan","{0} points","{0} Punkte","{0} points","{0} puntos","{0} pontos","{0} очков","{0}点","{0} punti"],"reachN":["Bir oyunda {0} puana ulaş","Reach {0} points in a game","Erreiche {0} Punkte in einem Spiel","Atteins {0} points en une partie","Alcanza {0} puntos en una partida","Alcance {0} pontos em uma partida","Набери {0} очков за игру","1回で{0}点に到達しよう","Raggiungi {0} punti in una partita"],"a_l100":["Temizlikçi","Cleaner","Aufräumer","Nettoyeur","Limpiador","Faxineiro","Уборщик","そうじ屋","Pulitore"],"totLines":["Toplam {0} çizgi temizle","Clear {0} lines in total","Lösche insgesamt {0} Linien","Efface {0} lignes au total","Borra {0} líneas en total","Limpe {0} linhas no total","Очисти всего {0} линий","合計{0}ライン消す","Elimina {0} linee in totale"],"a_g10":["Tutkun","Dedicated","Fan","Passionné","Aficionado","Dedicado","Фанат","やりこみ","Appassionato"],"playN":["{0} oyun oyna","Play {0} games","Spiele {0} Partien","Joue {0} parties","Juega {0} partidas","Jogue {0} partidas","Сыграй {0} игр","{0}回プレイする","Gioca {0} partite"],"qLines":["{0} satır/sütun temizle","Clear {0} lines","Lösche {0} Linien","Efface {0} lignes","Borra {0} líneas","Limpe {0} linhas","Очисти {0} линий","{0}ライン消す","Elimina {0} linee"],"qPlace":["{0} blok yerleştir","Place {0} blocks","Setze {0} Blöcke","Pose {0} blocs","Coloca {0} bloques","Coloque {0} blocos","Размести {0} блоков","ブロックを{0}個置く","Piazza {0} blocchi"],"qScore":["Tek oyunda {0} puan yap","Score {0} in one game","Erziele {0} Punkte in einem Spiel","Marque {0} points en une partie","Consigue {0} puntos en una partida","Faça {0} pontos em uma partida","Набери {0} очков за игру","1回で{0}点を取る","Fai {0} punti in una partita"],"qCombo":["{0}x kombo yap","Reach a {0}x combo","Erreiche eine {0}er-Kombo","Atteins un combo x{0}","Consigue un combo x{0}","Faça um combo x{0}","Сделай комбо ×{0}","{0}コンボを決める","Ottieni una combo x{0}"],"qMulti":["Aynı anda 2+ çizgiyi {0} kez temizle","Clear 2+ lines at once {0} times","Lösche {0}× 2+ Linien gleichzeitig","Efface 2+ lignes d’un coup {0} fois","Borra 2+ líneas a la vez {0} veces","Limpe 2+ linhas de uma vez {0} vezes","Очисти 2+ линии сразу {0} раз","2ライン以上を同時に{0}回消す","Elimina 2+ linee insieme {0} volte"],"qBoard":["Tahtayı {0} kez tamamen temizle","Clear the whole board {0} time(s)","Räume das ganze Brett {0}× komplett","Vide tout le plateau {0} fois","Despeja todo el tablero {0} vez/veces","Limpe todo o tabuleiro {0} vez(es)","Полностью очисти поле {0} раз","盤面を{0}回すべて消す","Svuota tutta la griglia {0} volta/e"],"newIn":["Yeni görevler: {0}","New quests in {0}","Neue Aufgaben in {0}","Nouvelles quêtes dans {0}","Nuevas misiones en {0}","Novas missões em {0}","Новые задания через {0}","次のミッションまで {0}","Nuove missioni tra {0}"],"qDone":["Görev tamamlandı!","Quest complete!","Aufgabe erledigt!","Quête terminée !","¡Misión cumplida!","Missão cumprida!","Задание выполнено!","ミッション達成！","Missione completata!"],"g1":["Güzel!","Good!","Gut!","Bien !","¡Bien!","Bom!","Хорошо!","いいね！","Bene!"],"g2":["Harika!","Great!","Großartig!","Super !","¡Genial!","Ótimo!","Отлично!","すごい！","Ottimo!"],"g3":["Mükemmel!","Excellent!","Exzellent!","Excellent !","¡Excelente!","Excelente!","Превосходно!","エクセレント！","Eccellente!"],"g4":["Destansı!","Epic!","Episch!","Épique !","¡Épico!","Épico!","Эпично!","エピック！","Epico!"],"g5":["Efsanevi!","Legendary!","Legendär!","Légendaire !","¡Legendario!","Lendário!","Легендарно!","レジェンド！","Leggendario!"],"combo":["Kombo","Combo","Kombo","Combo","Combo","Combo","Комбо","コンボ","Combo"],"rush":["Skor Yağmuru","Score Rush","Punkteregen","Pluie de points","Lluvia de puntos","Chuva de pontos","Дождь очков","スコアラッシュ","Pioggia di punti"],"master":["Kombo Ustası","Combo Master","Kombo-Meister","Maître du combo","Maestro del combo","Mestre do combo","Мастер комбо","コンボマスター","Maestro delle combo"],"comeback":["Efsanevi Dönüş","Legendary Comeback","Legendäres Comeback","Retour légendaire","Remontada legendaria","Virada lendária","Легендарный камбэк","伝説の逆転","Rimonta leggendaria"],"perfect":["Tam Temizlik!","Perfect Clear!","Komplett leer!","Plateau vidé !","¡Tablero limpio!","Tabuleiro limpo!","Чистое поле!","パーフェクト！","Griglia vuota!"],"newStyle":["Yeni tarz: {0}!","New style: {0}!","Neuer Stil: {0}!","Nouveau style : {0} !","¡Nuevo estilo: {0}!","Novo estilo: {0}!","Новый стиль: {0}!","新スタイル: {0}！","Nuovo stile: {0}!"],"contact":["İletişim","Contact Us","Kontakt","Nous contacter","Contáctanos","Fale conosco","Связаться с нами","お問い合わせ","Contattaci"],"share":["Arkadaşlarınla Paylaş","Share with Friends","Mit Freunden teilen","Partager avec des amis","Compartir con amigos","Compartilhar com amigos","Поделиться с друзьями","友達にシェア","Condividi con gli amici"],"terms":["Kullanım Şartları","Terms of Service","Nutzungsbedingungen","Conditions d’utilisation","Términos del servicio","Termos de serviço","Условия использования","利用規約","Termini di servizio"],"privacy":["Gizlilik Politikası","Privacy Policy","Datenschutz","Politique de confidentialité","Política de privacidad","Política de privacidade","Политика конфиденциальности","プライバシーポリシー","Informativa sulla privacy"],"about":["Hakkımızda","About Us","Über uns","À propos","Acerca de","Sobre nós","О нас","私たちについて","Chi siamo"],"termsB":["BLOCK SNAPPY eğlence amaçlı ücretsiz bir oyundur ve olduğu gibi sunulur. Oyunu kötüye kullanmamayı ve başkalarının haklarına saygı göstermeyi kabul edersin.","BLOCK SNAPPY is a free game for entertainment, provided as is. By playing you agree not to misuse it and to respect the rights of others.","BLOCK SNAPPY ist ein kostenloses Unterhaltungsspiel und wird wie besehen bereitgestellt. Mit dem Spielen stimmst du zu, es nicht zu missbrauchen und die Rechte anderer zu achten.","BLOCK SNAPPY est un jeu gratuit de divertissement, fourni tel quel. En jouant, tu acceptes de ne pas en faire un mauvais usage et de respecter les droits des autres.","BLOCK SNAPPY es un juego gratuito de entretenimiento, ofrecido tal cual. Al jugar aceptas no hacer un mal uso de él y respetar los derechos de los demás.","BLOCK SNAPPY é um jogo gratuito de entretenimento, oferecido como está. Ao jogar, você concorda em não fazer mau uso dele e em respeitar os direitos dos outros.","BLOCK SNAPPY — бесплатная развлекательная игра, предоставляемая «как есть». Играя, вы соглашаетесь не злоупотреблять ею и уважать права других.","BLOCK SNAPPYは娯楽目的の無料ゲームで、現状のまま提供されます。プレイすることで、不正利用をせず他者の権利を尊重することに同意したものとみなされます。","BLOCK SNAPPY è un gioco gratuito di intrattenimento, fornito così com’è. Giocando accetti di non farne un uso improprio e di rispettare i diritti degli altri."],"privacyB":["Oyun, skorlarını ve ayarlarını yalnızca bu cihazın tarayıcı deposunda (LocalStorage) saklar. Kişisel veri toplamaz, hesap istemez ve verilerini sunucuya göndermez.","The game stores your scores and settings only in this device's browser storage (LocalStorage). It collects no personal data, needs no account and sends nothing to a server.","Das Spiel speichert Punktestände und Einstellungen nur im Browser-Speicher (LocalStorage) dieses Geräts. Es erhebt keine persönlichen Daten, braucht kein Konto und sendet nichts an einen Server.","Le jeu enregistre scores et réglages uniquement dans le stockage du navigateur (LocalStorage) de cet appareil. Il ne collecte aucune donnée personnelle, n’exige pas de compte et n’envoie rien à un serveur.","El juego guarda tus puntuaciones y ajustes solo en el almacenamiento del navegador (LocalStorage) de este dispositivo. No recopila datos personales, no requiere cuenta y no envía nada a un servidor.","O jogo guarda suas pontuações e configurações apenas no armazenamento do navegador (LocalStorage) deste dispositivo. Não coleta dados pessoais, não exige conta e não envia nada a um servidor.","Игра хранит результаты и настройки только в хранилище браузера (LocalStorage) этого устройства. Она не собирает личные данные, не требует аккаунта и ничего не отправляет на сервер.","このゲームはスコアと設定をこの端末のブラウザ保存領域（LocalStorage）にのみ保存します。個人情報は収集せず、アカウントも不要で、サーバーへ送信することもありません。","Il gioco salva punteggi e impostazioni solo nella memoria del browser (LocalStorage) di questo dispositivo. Non raccoglie dati personali, non richiede un account e non invia nulla a un server."],"aboutB":["BLOCK SNAPPY, 8×8 tahtada oynanan bir blok bulmaca oyunudur. HTML5 ile yapıldı; internet olmadan da çalışır.","BLOCK SNAPPY is a block puzzle game played on an 8×8 board. Built with HTML5; it also works offline.","BLOCK SNAPPY ist ein Block-Puzzle auf einem 8×8-Brett. Mit HTML5 gebaut; funktioniert auch offline.","BLOCK SNAPPY est un puzzle de blocs sur une grille 8×8. Créé en HTML5, il fonctionne aussi hors ligne.","BLOCK SNAPPY es un juego de bloques en un tablero de 8×8. Hecho con HTML5; también funciona sin conexión.","BLOCK SNAPPY é um quebra-cabeça de blocos em um tabuleiro 8×8. Feito em HTML5; funciona também offline.","BLOCK SNAPPY — головоломка с блоками на поле 8×8. Сделана на HTML5, работает и без интернета.","BLOCK SNAPPYは8×8の盤面で遊ぶブロックパズルです。HTML5製で、オフラインでも動作します。","BLOCK SNAPPY è un puzzle di blocchi su una griglia 8×8. Realizzato in HTML5; funziona anche offline."],"moreGames":["Daha Fazla Oyun","More Games","Mehr Spiele","Plus de jeux","Más juegos","Mais jogos","Другие игры","他のゲーム","Altri giochi"],"comingSoon":["Yeni oyunlar çok yakında!","New games coming soon!","Neue Spiele bald!","De nouveaux jeux arrivent bientôt !","¡Nuevos juegos muy pronto!","Novos jogos em breve!","Новые игры скоро!","新しいゲームは近日公開！","Nuovi giochi in arrivo!"],"version":["Sürüm","Version","Version","Version","Versión","Versão","Версия","バージョン","Versione"],"linkCopied":["Bağlantı kopyalandı!","Link copied!","Link kopiert!","Lien copié !","¡Enlace copiado!","Link copiado!","Ссылка скопирована!","リンクをコピーしました！","Link copiato!"],"shareText":["BLOCK SNAPPY oynuyorum, sen de dene!","I'm playing BLOCK SNAPPY, try it!","Ich spiele BLOCK SNAPPY – probier es aus!","Je joue à BLOCK SNAPPY, essaie !","Estoy jugando BLOCK SNAPPY, ¡pruébalo!","Estou jogando BLOCK SNAPPY, experimente!","Я играю в BLOCK SNAPPY, попробуй!","BLOCK SNAPPYで遊んでるよ、試してみて！","Sto giocando a BLOCK SNAPPY, provalo!"],"contactNote":["Bize e-posta ile ulaşabilirsin:","You can reach us by email:","Du erreichst uns per E-Mail:","Écris-nous par e-mail :","Escríbenos por correo:","Fale conosco por e-mail:","Напишите нам на почту:","メールでご連絡ください：","Scrivici via email:"],"sendMail":["E-posta Gönder","Send Email","E-Mail senden","Envoyer un e-mail","Enviar correo","Enviar e-mail","Отправить письмо","メールを送る","Invia email"],"h1":["Alttaki 3 bloğu sürükleyip 8×8 tahtaya bırak.","Drag the 3 blocks below onto the 8×8 board.","Ziehe die 3 Blöcke unten auf das 8×8-Brett.","Fais glisser les 3 blocs du bas sur la grille 8×8.","Arrastra los 3 bloques de abajo al tablero de 8×8.","Arraste os 3 blocos de baixo para o tabuleiro 8×8.","Перетащи 3 блока снизу на поле 8×8.","下の3つのブロックを8×8の盤面にドラッグしよう。","Trascina i 3 blocchi in basso sulla griglia 8×8."],"h2":["Dolan satır ve sütunlar temizlenir; aynı anda birden fazlasını temizlersen ekstra puan alırsın.","Full rows and columns are cleared; clearing several at once gives bonus points.","Volle Reihen und Spalten werden gelöscht; mehrere auf einmal geben Bonuspunkte.","Les lignes et colonnes pleines disparaissent ; en effacer plusieurs d’un coup donne des points bonus.","Las filas y columnas completas se borran; borrar varias a la vez da puntos extra.","Linhas e colunas completas são limpas; limpar várias de uma vez dá pontos extras.","Заполненные строки и столбцы исчезают; несколько сразу — бонусные очки.","埋まった行と列が消えます。同時に消すとボーナス点！","Righe e colonne piene vengono eliminate; eliminarne più insieme dà punti bonus."],"h3":["Art arda temizleyerek kombo yap; 4 hamle temizlemezsen kombo sıfırlanır.","Clear lines back to back for combos; the combo resets after 4 moves without a clear.","Lösche Linien nacheinander für Kombos; nach 4 Zügen ohne Löschen endet die Kombo.","Enchaîne les effacements pour des combos ; le combo retombe après 4 coups sans effacer.","Encadena borrados para hacer combos; el combo se reinicia tras 4 jugadas sin borrar.","Limpe em sequência para fazer combos; o combo zera após 4 jogadas sem limpar.","Очищай линии подряд для комбо; после 4 ходов без очистки комбо сбрасывается.","連続でラインを消すとコンボ。4手消せないとリセットされます。","Elimina di seguito per fare combo; la combo si azzera dopo 4 mosse senza eliminare."],"h4":["Üzerinde sayı olan bloklar: sayı bitmeden temizlersen bonus puan kazanırsın.","Numbered blocks: clear them before the number runs out for bonus points.","Nummerierte Blöcke: Lösche sie, bevor die Zahl abläuft, für Bonuspunkte.","Blocs numérotés : efface-les avant la fin du compte pour gagner des points bonus.","Bloques con número: bórralos antes de que llegue a cero para ganar puntos extra.","Blocos numerados: limpe antes que o número acabe para ganhar pontos extras.","Блоки с числами: очисти их до конца отсчёта — получишь бонус.","数字付きブロックは、数字が尽きる前に消すとボーナス！","Blocchi numerati: eliminali prima che il numero finisca per ottenere punti bonus."],"h5":["Tahta tamamen boşalırsa bonus puan alırsın ve blokların tarzı değişir.","Clear the whole board for a bonus and a brand-new block style.","Räumst du das ganze Brett, gibt es einen Bonus und einen neuen Blockstil.","Vide tout le plateau pour un bonus et un nouveau style de blocs.","Si despejas todo el tablero ganas un bonus y cambia el estilo de los bloques.","Limpe o tabuleiro inteiro para ganhar bônus e um novo estilo de blocos.","Очисти всё поле — получишь бонус и новый стиль блоков.","盤面をすべて消すとボーナスとブロックの新スタイル！","Svuota tutta la griglia per un bonus e un nuovo stile dei blocchi."],"h6":["Hiçbir blok sığmazsa oyun biter. Sağ üstteki ⚙ ile oyunu duraklatırsın (PC: ESC).","If no block fits, the game ends. Tap ⚙ at the top right to pause (PC: Esc).","Passt kein Block mehr, ist das Spiel vorbei. Mit ⚙ oben rechts pausierst du (PC: Esc).","Si aucun bloc ne rentre, la partie est finie. ⚙ en haut à droite met en pause (PC : Échap).","Si no cabe ningún bloque, termina la partida. ⚙ arriba a la derecha pausa (PC: Esc).","Se nenhum bloco couber, o jogo acaba. ⚙ no canto superior direito pausa (PC: Esc).","Если ни один блок не помещается, игра заканчивается. ⚙ вверху справа — пауза (ПК: Esc).","置けるブロックがなくなると終了。右上の⚙で一時停止（PC: Esc）。","Se nessun blocco entra, la partita finisce. ⚙ in alto a destra mette in pausa (PC: Esc)."]};
+const STYN=[["Cevher","Klasik","Paslı Metal","Cam Buz","Yosunlu Taş","Ahşap Kasa","Neon Çerçeve","Lav","Ametist","Karlı Buz","Çimen","Siber Metal","Altın Cevher","Neon Cevher","Sandık"],["Jewel","Classic","Rusty Metal","Glass Ice","Mossy Stone","Wooden Crate","Neon Frame","Lava","Amethyst","Snowy Ice","Grass","Cyber Metal","Gold Ore","Neon Jewel","Crate"],["Juwel","Klassisch","Rostiges Metall","Glaseis","Moosstein","Holzkiste","Neonrahmen","Lava","Amethyst","Schneeeis","Gras","Cybermetall","Golderz","Neonjuwel","Kiste"],["Joyau","Classique","Métal rouillé","Glace de verre","Pierre moussue","Caisse en bois","Cadre néon","Lave","Améthyste","Glace neigeuse","Herbe","Métal cyber","Minerai d’or","Joyau néon","Caisse"],["Joya","Clásico","Metal oxidado","Hielo de cristal","Piedra musgosa","Caja de madera","Marco neón","Lava","Amatista","Hielo nevado","Hierba","Metal ciber","Mineral de oro","Joya neón","Caja"],["Joia","Clássico","Metal enferrujado","Gelo de vidro","Pedra musgosa","Caixa de madeira","Moldura neon","Lava","Ametista","Gelo com neve","Grama","Metal ciber","Minério de ouro","Joia neon","Caixote"],["Самоцвет","Классика","Ржавый металл","Стеклянный лёд","Мшистый камень","Деревянный ящик","Неоновая рамка","Лава","Аметист","Снежный лёд","Трава","Кибер-металл","Золотая руда","Неоновый самоцвет","Ящик"],["ジュエル","クラシック","さび金属","ガラス氷","苔むした石","木箱","ネオン枠","溶岩","アメジスト","雪氷","草地","サイバー金属","金鉱石","ネオンジュエル","クレート"],["Gioiello","Classico","Metallo arrugginito","Ghiaccio di vetro","Pietra muschiosa","Cassa di legno","Cornice neon","Lava","Ametista","Ghiaccio innevato","Erba","Metallo cyber","Minerale d’oro","Gioiello neon","Cassa"]];
+let LI=1,qiv=0;
+const CONTACT_EMAIL='blocksnappy@gmail.com';
+const LINKS={tiktok:'https://www.tiktok.com/',discord:'https://discord.com/',x:'https://x.com/',facebook:'https://www.facebook.com/',youtube:'https://www.youtube.com/',official:''};
+function detLang(){const n=(navigator.language||'en').slice(0,2).toLowerCase();return LN.includes(n)?n:'en'}
+function t(k,a){const v=T[k];const s=v?(v[LI]!==undefined?v[LI]:v[1]):k;return a===undefined?s:s.replace('{0}',a)}
+function styName(i){return(STYN[LI]||STYN[1])[i]}
+function applyLang(){LI=Math.max(0,LN.indexOf(D.lang||detLang()));document.documentElement.lang=LN[LI];
+ document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));
+ $('#gearM').title=t('settings');$('#gearG').title=t('settings')+' (ESC)';menuInfo()}
+function setLang(c){D.lang=c;save();applyLang();more()}
+/* ---------- başarımlar ---------- */
+const ACH=[
+ {id:'first',n:()=>t('a_first'),d:()=>t('a_first_d'),f:d=>d.st.lines>=1},
+ {id:'c3',n:()=>t('a_c3'),d:()=>t('a_c3_d'),f:d=>d.st.combo>=3},
+ {id:'big',n:()=>t('a_big'),d:()=>t('a_big_d'),f:d=>d.st.big>=1},
+ {id:'s1',n:()=>t('pts','1000'),d:()=>t('reachN','1000'),f:d=>d.best>=1000},
+ {id:'s5',n:()=>t('pts','5000'),d:()=>t('reachN','5000'),f:d=>d.best>=5000},
+ {id:'l100',n:()=>t('a_l100'),d:()=>t('totLines',100),f:d=>d.st.lines>=100},
+ {id:'g10',n:()=>t('a_g10'),d:()=>t('playN',10),f:d=>d.st.games>=10}];
+function chk(){ACH.forEach(a=>{if(!D.ach[a.id]&&a.f(D)){D.ach[a.id]=1;toast(t('achT',a.n()),'trophy')}});
+ if(D.q&&D.q.g)D.q.g.forEach(q=>{if(!q.d&&(D.q.p[q.k]||0)>=q.n){q.d=1;toast(t('qDone'),'check')}})}
+let tt;function toast(tx,ic){const e=$('#toast');e.textContent=tx;if(ic){const sp=document.createElement('span');sp.dataset.i=ic;sp.style.cssText='font-size:20px;margin-right:6px';e.prepend(sp);fillIcons(e)}e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2400)}
+/* ---------- pencereler ---------- */
+const M=$('#modal');
+function modal(h,c){clearInterval(qiv);M.innerHTML='<div class="box'+(c?' '+c:'')+'">'+h+'</div>';fillIcons(M);M.classList.add('on')}
+function closeM(silent){clearInterval(qiv);M.classList.remove('on');if(!silent&&playing&&paused){paused=false;music()}}
+function gamePause(){cancelDrag();if(playing&&!paused&&$('#game').classList.contains('on')){paused=true;music()}}
+function toMenu(){playing=false;paused=false;music();closeM(true);show('menu')}
+const X=f=>'<button class="x" onclick="'+f+'"><span data-i="close"></span></button>';
+function howTo(){modal('<h2>'+t('howto')+'</h2><ul>'+[1,2,3,4,5,6].map(i=>'<li>'+t('h'+i).replace('⚙','<span data-i="gear"></span>')+'</li>').join('')+'</ul><button class="btn" onclick="closeM()">'+t('ok')+'</button>')}
+function settings(){gamePause();const inG=$('#game').classList.contains('on');
+ const ic=(on,ico,l,f)=>'<button class="ic'+(on?'':' off')+'" onclick="'+f+'"><span data-i="'+ico+'"></span>'+l+'</button>';
+ modal('<div class="sth"><b>'+t('settings')+'</b>'+X('closeM()')+'</div><div class="stp"><div class="ir">'+
+ ic(D.sound,'sound',t('sound'),'D.sound=!D.sound;save();settings()')+ic(D.music,'music',t('music'),'D.music=!D.music;save();music();settings()')+ic(D.vib,'vibe',t('vib'),'D.vib=!D.vib;save();vib(60);settings()')+'</div>'+
+ '<div class="vr"><button onclick="D.vl=Math.max(1,(D.vl||2)-1);save();vib(60);settings()">−</button><i><u style="width:'+(D.vl||2)/3*100+'%"></u></i><button onclick="D.vl=Math.min(3,(D.vl||2)+1);save();vib(60);settings()">+</button></div><p style="font-size:12px;opacity:.75;margin:4px 0 0;text-align:center">'+t('vibNote')+'</p><hr>'+
+ '<button class="sbn pu" onclick="quests()"><span data-i="target"></span>'+t('quests')+'</button>'+
+ '<button class="sbn gr2" onclick="more()"><span data-i="gear"></span>'+t('moreSet')+'</button>'+
+ (inG?'<button class="sbn gr2" onclick="toMenu()"><span data-i="home"></span>'+t('home')+'</button><button class="sbn gr2" onclick="start()"><span data-i="replay"></span>'+t('restart')+'</button>':'')+
+ '<button class="sbn bl" onclick="defTheme()"><span data-i="palette"></span>'+t('defSkin')+'</button></div>','st')}
+function defTheme(){D.theme=0;D.sty=0;skin=0;document.body.dataset.skin=0;save();applyTheme();toast(t('defSkin'))}
+function resetAll(){if(confirm(t('confirmReset'))){D=DEF();save();applyTheme();skin=0;document.body.dataset.skin=0;applyLang();$('#gBest').textContent=0;more()}}
+const APPICON='<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#1b1f63"/><g stroke="rgba(255,255,255,.4)" stroke-width="1.5"><rect x="8" y="8" width="22" height="22" rx="3" fill="#ee3322"/><rect x="34" y="8" width="22" height="22" rx="3" fill="#ffc61a"/><rect x="8" y="34" width="22" height="22" rx="3" fill="#2bd142"/><rect x="34" y="34" width="22" height="22" rx="3" fill="#2a8bff"/></g></svg>';
+const SOCS=[
+ {k:'tiktok',bg:'#000',v:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6"><path d="M13.5 4v10a3 3 0 1 1-3-3" stroke="#25f4ee" transform="translate(-1 -1)"/><path d="M13.5 4v10a3 3 0 1 1-3-3" stroke="#fe2c55" transform="translate(1 1)"/><path d="M13.5 4v10a3 3 0 1 1-3-3M13.5 4c.4 2.4 1.9 3.8 4.2 4" stroke="#fff"/></svg>'},
+ {k:'discord',bg:'#5865f2',v:'<svg viewBox="0 0 24 24"><path d="M5 7.5C7 6 9.2 5.5 12 5.5s5 .5 7 2c1.3 3 1.9 6.2 1.6 9.5-1.6 1.2-3.2 1.8-4.8 2l-1-2c-1 .2-2 .3-2.8.3s-1.8-.1-2.8-.3l-1 2c-1.6-.2-3.2-.8-4.8-2C3.1 13.7 3.7 10.5 5 7.5Z" fill="#fff"/><circle cx="9" cy="12.5" r="1.7" fill="#5865f2"/><circle cx="15" cy="12.5" r="1.7" fill="#5865f2"/></svg>'},
+ {k:'x',bg:'#000',v:'<svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/></svg>'},
+ {k:'facebook',bg:'#1877f2',v:'<svg viewBox="0 0 24 24"><path d="M14 21v-8h3l.5-3.5H14V7.7c0-1 .4-1.7 1.8-1.7h1.8V3.1C17.3 3 16.2 3 15 3c-2.6 0-4.3 1.6-4.3 4.4v2.1H8V13h2.7v8Z" fill="#fff"/></svg>'},
+ {k:'youtube',bg:'#fff',v:'<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="13" rx="4" fill="#f00"/><path d="M10 9.5v6l5.2-3Z" fill="#fff"/></svg>'},
+ {k:'official',bg:'#fff3d0',v:IC.crown}];
+IC.chev=SV('<path d="M9 5l7 7-7 7"/>',ST);
+function openL(k){window.open(LINKS[k]||location.href,'_blank','noopener')}
+function more(){const old=$('#modal .box'),sc=old?old.scrollTop:0;
+ const row=(l,f,sm)=>'<button class="mrow" onclick="'+f+'"><span>'+l+'</span><span style="display:flex;align-items:center">'+(sm?'<small>'+sm+'</small>':'')+'<span class="chev" data-i="chev"></span></span></button>';
+ modal('<div class="sth"><b>'+t('moreSet')+'</b>'+X('settings()')+'</div><div class="stp">'+
+ '<div class="apph">'+APPICON+'<div><b>BLOCK SNAPPY</b><small>'+t('version')+': 1.0.0</small></div></div>'+
+ row(t('language'),'langs()',LNAME[LN[LI]])+
+ '<div class="mrow" style="cursor:default"><span>'+t('themeT')+'</span><span class="row" style="flex-wrap:nowrap;gap:6px">'+THEMES.map((x,i)=>'<button title="'+x.n+'" class="th'+(i===D.theme?' on':'')+'" style="width:30px;height:30px;background:linear-gradient('+x.b1+','+x.b2+')" onclick="D.theme='+i+';save();applyTheme();more()"></button>').join('')+'</span></div>'+
+ '<div class="mrow" style="cursor:default"><span>'+t('blockStyle')+'</span><span style="display:flex;align-items:center;gap:6px"><button class="th" style="width:30px;height:30px;font-size:20px;background:rgba(255,255,255,.2)" onclick="setSty(-1)">‹</button><b style="min-width:92px;text-align:center;font-size:14px">'+styName(D.sty||0)+'</b><button class="th" style="width:30px;height:30px;font-size:20px;background:rgba(255,255,255,.2)" onclick="setSty(1)">›</button></span></div>'+
+ row(t('ach'),'achs()')+row(t('stats'),'stats()')+row(t('howto'),'howTo()')+
+ row(t('contact'),'contact()')+row(t('share'),'shareGame()')+
+ '<div class="soc">'+SOCS.map(o=>'<button style="background:'+o.bg+'" onclick="openL(\''+o.k+'\')" aria-label="'+o.k+'">'+o.v+'</button>').join('')+'</div>'+
+ row(t('terms'),'legal(\'terms\')')+row(t('privacy'),'legal(\'privacy\')')+row(t('about'),'legal(\'about\')')+
+ '<button class="mrow rs" onclick="resetAll()"><span>'+t('resetData')+'</span><span data-i="trash"></span></button></div>'+
+ '<button class="mg" onclick="moreGames()"><span data-i="play"></span>'+t('moreGames')+'</button>','ms');
+ const nb=$('#modal .box');if(nb)nb.scrollTop=sc}
+function langs(){modal('<div class="sth"><b>'+t('language')+'</b>'+X('more()')+'</div><div class="stp">'+LN.map(c=>'<button class="lgb'+(c===LN[LI]?' on':'')+'" onclick="setLang(\''+c+'\')"><i>'+c.toUpperCase()+'</i>'+LNAME[c]+'</button>').join('')+'</div>','ms')}
+const LEGAL_TEXT={
+ tr:{
+  privacy:[["Son Güncelleme: 25 Kasım 2026","Bu metin, BLOCK SNAPPY’nin mevcut sürümünün işleyişi esas alınarak hazırlanmıştır. Oyuna reklam, analiz, çevrimiçi hesap, bulut kayıt veya uygulama içi satın alma gibi yeni özellikler eklenirse bu politika ilgili değişikliklere göre güncellenecektir."],["1. Veri Sorumlusu ve Politikanın Kapsamı","BLOCK SNAPPY, bağımsız bir blok bulmaca oyunu projesidir. Bu Gizlilik Politikası, BLOCK SNAPPY’yi tarayıcıda veya oyunun bu HTML sürümünü çalıştıran uyumlu bir ortamda kullandığınızda oyun tarafından hangi bilgilerin işlendiğini, bu bilgilerin nerede tutulduğunu ve hangi seçeneklere sahip olduğunuzu açıklar. İletişim ve gizlilik talepleri için bu politikanın 12. bölümündeki e-posta adresini kullanabilirsiniz."],["2. Hesap ve Kullanıcı Tarafından Verilen Bilgiler","Mevcut sürümde hesap oluşturma, üyelik, kullanıcı adı veya profil fotoğrafı yükleme zorunluluğu bulunmaz. Oyun, oyun içinde adınızı, ev adresinizi, telefon numaranızı, konumunuzu, rehberinizi, fotoğraflarınızı, kameranızı veya mikrofonunuzu istemez ve bu özelliklere erişmek için izin talep etmez. Bizimle e-posta yoluyla iletişim kurmayı seçerseniz, e-posta adresiniz ve mesajınız kullandığınız e-posta hizmeti aracılığıyla bize iletilir. Bu bilgileri yalnızca mesajınıza yanıt vermek ve talebinizi değerlendirmek için kullanırız."],["3. Oyun İçinde Cihazınızda Saklanan Bilgiler","Oyunun ilerlemenizi ve tercihlerinizi koruyabilmesi için bazı bilgiler kullandığınız cihazın tarayıcısındaki LocalStorage alanında saklanabilir. Bunlar; mevcut ve en yüksek skor, oynanan oyun sayısı, toplam puan, temizlenen çizgiler, yerleştirilen bloklar, kombo ve istatistik bilgileri, kazanılan başarımlar, günlük görev ilerlemesi, seçilen dil, tema ve blok görünümü ile ses, müzik ve titreşim gibi oyun tercihleri olabilir. Bu kayıtlar oyunun temel işlevlerini sağlamak içindir. Mevcut sürümde bu oyun kayıtlarını BLOCK SNAPPY sunucusuna gönderen bir hesap veya bulut senkronizasyon sistemi bulunmamaktadır."],["4. Otomatik Olarak Toplanan Cihaz ve Kullanım Verileri","Mevcut oyun kodu; cihaz modeli, reklam kimliği (Google Advertising ID veya IDFA), kesin konum, rehber, kamera veya mikrofon verisi toplamak üzere tasarlanmamıştır. Ayrıca oyuna entegre edilmiş bir davranışsal reklam, kullanıcı profilleme veya oyun içi analiz SDK’sı bulunmamaktadır. Bununla birlikte oyunu açtığınız web sitesi, barındırma sağlayıcısı, tarayıcı, işletim sistemi veya uygulama mağazası; güvenlik, bağlantı ve hizmet sunumu amacıyla IP adresi, erişim zamanı, tarayıcı türü ve teknik günlükler gibi verileri kendi sistemlerinde işleyebilir. Bu tür işlemler ilgili sağlayıcının kendi gizlilik politikası ve şartlarına tabidir; BLOCK SNAPPY’nin oyun kodu bu sunucu günlüklerini yönetmez."],["5. Bilgilerin Kullanım Amaçları","Cihazınızda saklanan oyun verileri; oyunu çalıştırmak, skor ve ilerlemenizi korumak, istatistikleri göstermek, başarımları ve günlük görevleri takip etmek, seçtiğiniz dil ve görünüm tercihlerini hatırlamak için kullanılır. Bize e-posta gönderirseniz, verdiğiniz iletişim bilgileri mesajınıza cevap vermek, teknik sorunları anlamak ve geri bildiriminizi değerlendirmek amacıyla kullanılabilir. Mevcut sürümde bu veriler reklam hedefleme veya üçüncü taraflara pazarlama amacıyla kullanılmaz."],["6. Üçüncü Taraf Hizmetler, Paylaşım ve E-posta","Mevcut sürümde Firebase, Unity Analytics, Google Analytics, Google AdMob, Unity Ads, Google Play Games veya Apple Game Center gibi analiz, reklam, çevrimiçi skor ya da bulut kayıt SDK’ları oyuna entegre edilmiş değildir. Paylaşım düğmesi, destekleyen cihaz ve tarayıcılarda sistem paylaşım penceresini açabilir. Paylaşım içeriğini, hedef uygulamayı ve alıcıyı siz seçersiniz; oyun rehberinize erişmez ve sizin onayınız olmadan paylaşım yapmaz. E-posta düğmesi Gmail’de alıcı ve konu bilgisi doldurulmuş yeni bir ileti taslağı açar. Oyun e-postayı otomatik olarak göndermez; içeriği kontrol edip gönderme işlemini siz yaparsınız. Gmail, WhatsApp, Telegram, X veya diğer üçüncü taraf hizmetleri kullandığınızda, bu hizmetlerin kendi gizlilik politikaları geçerlidir."],["7. Çerezler ve Benzer Teknolojiler","Oyunun mevcut kodu reklam çerezi, davranışsal izleme veya reklam kimliği kullanacak şekilde yapılandırılmamıştır. Oyun ilerlemesi ve tercihleri için tarayıcı LocalStorage alanından yararlanılır. Oyunun barındırıldığı web sitesi veya üçüncü taraf hizmetler, kendi işleyişleri kapsamında çerez veya benzer teknik teknolojiler kullanabilir. Bu kullanımlar ilgili hizmet sağlayıcının kontrolündedir."],["8. Verilerin Saklanma Süresi ve Silinmesi","LocalStorage kayıtları, siz oyun içindeki “Verileri Sıfırla” seçeneğini kullanana, tarayıcı/site verilerini temizleyene veya tarayıcı depolama alanı başka bir nedenle silinene kadar cihazınızda kalabilir. Cihaz değiştirmek, farklı tarayıcı kullanmak veya tarayıcı verilerini temizlemek oyun ilerlemesinin kaybolmasına neden olabilir. Mevcut sürümde oyun kayıtlarının BLOCK SNAPPY tarafından işletilen bir sunucuda saklanması veya cihazlar arasında eşitlenmesi söz konusu değildir. Bize e-posta ile gönderdiğiniz mesajlar ise talebinizi yanıtlamak ve gerekli yazışma geçmişini tutmak için makul süre boyunca e-posta hesabımızda kalabilir."],["9. Veri Güvenliği","Oyun kayıtları cihazınızın tarayıcısında tutulduğundan, bu kayıtların güvenliği cihazınızın, işletim sisteminizin ve tarayıcınızın güvenliğine bağlıdır. Cihazınızı güncel tutmanızı, başkalarıyla paylaşılan cihazlarda kişisel verilerinizi korumanızı ve cihazınızın güvenlik ayarlarını kullanmanızı öneririz. İnternet üzerinden hiçbir aktarım veya elektronik saklama yöntemi mutlak güvenlik garantisi vermez. E-posta ile gönderdiğiniz bilgiler, kullandığınız e-posta sağlayıcısının sistemlerinden geçer."],["10. Çocukların Gizliliği","BLOCK SNAPPY genel kitleye yönelik bir bulmaca oyunudur ve mevcut sürümde oyunculardan doğrudan kişisel bilgi girmeleri istenmez. Oyun, özellikle 13 yaşın altındaki çocuklardan kişisel veri toplamayı amaçlamaz. Ebeveyn veya yasal vasiler, çocukların cihaz ve internet kullanımını gözetebilir. Çocuğunuzun bize e-posta yoluyla kişisel bilgi gönderdiğini düşünüyorsanız, lütfen aşağıdaki iletişim adresinden bize ulaşın."],["11. KVKK ve Diğer Yasal Haklar","Bulunduğunuz yerde geçerli veri koruma mevzuatının tanıdığı haklar kapsamında, kişisel verilerinizin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme, yanlış veya eksik bilgilerin düzeltilmesini isteme, mevzuatta öngörülen koşullarda silinmesini veya yok edilmesini talep etme ve hukuka aykırı işleme nedeniyle doğan haklarınızı kullanma imkânınız olabilir. Türkiye’de 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamındaki taleplerinizi e-posta yoluyla iletebilirsiniz. Oyunun mevcut sürümünde oyun ilerlemesi cihazınızda yerel olarak tutulduğundan, bu kayıtları silmek için oyun içindeki “Verileri Sıfırla” seçeneğini de kullanabilirsiniz. Reklam kişiselleştirme ayarları, mevcut sürümde oyuna entegre edilmiş bir reklam sistemi bulunmadığından uygulanmamaktadır."],["12. Politika Değişiklikleri ve İletişim","Oyunun özellikleri, kullanılan hizmetler veya yasal gereklilikler değiştiğinde bu Gizlilik Politikası güncellenebilir. Güncel sürüm bu bölümde yayımlanır ve son güncelleme tarihi değiştirilir. Gizlilik, kişisel veriler veya silme talepleriyle ilgili sorularınız için BLOCK SNAPPY geliştiricisine şu adresten ulaşabilirsiniz: blocksnappy@gmail.com. Mevcut sürüm için ayrıca belirtilmiş bir şirket unvanı veya web sitesi bulunmamaktadır."]],
+  terms:[
+   ['1. Kabul ve Kapsam','BLOCK SNAPPY’yi kullanarak bu Kullanım Şartları’nı kabul etmiş olursunuz. Şartları kabul etmiyorsanız oyunu kullanmayı bırakabilirsiniz. Bu metin, oyunun mevcut sürümünün kullanımını kapsar.'],
+   ['2. Oyunun Kullanımı','BLOCK SNAPPY kişisel ve eğlence amaçlı kullanım için sunulan bir blok bulmaca oyunudur. Oyunu hukuka uygun şekilde kullanmalı; oyunun normal çalışmasını bozacak, güvenliğini zayıflatacak veya diğer kullanıcıların deneyimini olumsuz etkileyecek girişimlerde bulunmamalısınız.'],
+   ['3. Fikri Haklar','Oyuna ait ad, görsel tasarım, arayüz, metinler, karakterler ve yazılım bileşenleri, ilgili hak sahiplerine aittir veya izin verilen şekilde kullanılmaktadır. Yazılı izin olmadan oyunun önemli bölümlerini kopyalamak, yeniden yayımlamak, satmak veya kendi ürününüz gibi sunmak yasaktır.'],
+   ['4. Kayıtlar ve Cihaz','Skorlar ve tercihler mevcut sürümde kullandığınız cihazın tarayıcı depolama alanında tutulabilir. Tarayıcı verilerinin silinmesi, cihazın değiştirilmesi veya depolama alanının temizlenmesi kayıtların kaybolmasına neden olabilir. Kayıtların her koşulda korunacağı veya cihazlar arasında aktarılacağı garanti edilmez.'],
+   ['5. Güncellemeler ve Kullanılabilirlik','Oyunun özellikleri, tasarımı veya erişilebilirliği zaman içinde değiştirilebilir. Bakım, teknik sorunlar, tarayıcı uyumsuzluğu veya üçüncü taraf hizmetlerindeki kesintiler nedeniyle oyuna erişim geçici olarak etkilenebilir.'],
+   ['6. Sorumluluk Sınırı','Oyun mevcut hâliyle ve eğlence amacıyla sunulur. Teknik aksaklıklar, uyumsuz cihazlar, veri kaybı veya üçüncü taraf hizmetlerinden kaynaklanan sorunlar için mevzuatın izin verdiği ölçüde garanti verilmez. Bu şartlar, yürürlükteki kanunlar uyarınca kaldırılamayan tüketici haklarını ortadan kaldırmaz.'],
+   ['7. Üçüncü Taraf Uygulamaları','Paylaşım veya e-posta gibi özellikler cihazınızdaki üçüncü taraf uygulamalarını açabilir. Bu uygulamaların hizmet koşulları ve gizlilik politikaları kendi sağlayıcıları tarafından belirlenir.'],
+   ['8. Şartların Güncellenmesi','Bu şartlar oyunun özellikleri veya yasal gereklilikler değiştiğinde güncellenebilir. Güncel metin oyunun bu bölümünde yayımlandığı tarihten itibaren geçerlidir.'],
+   ['9. İletişim','Kullanım şartlarıyla ilgili sorularınız için blocksnappy@gmail.com adresine yazabilirsiniz.']
+  ],
+  about:[
+   ['Blokların gücünü keşfet!','BLOCK SNAPPY, her hamlenin yeni bir fırsat yarattığı, kolay öğrenilen ama ustalaşması keyifli bir blok bulmaca oyunudur. Amacın, farklı şekillerdeki blokları 8×8 oyun alanına akıllıca yerleştirerek satır ve sütunları tamamlamak, puan toplamak ve kendi rekorunu geliştirmektir.'],
+   ['Kendi oyun tarzını oluştur','Kombo zincirleri, günlük görevler, başarımlar, istatistikler, farklı blok görünümleri ve renkli temalar her oyuna ayrı bir heyecan katar. İster kısa bir mola ver ister rekorunu yenilemek için tekrar dene; BLOCK SNAPPY her seviyeden oyuncuya keyifli bir bulmaca deneyimi sunmayı hedefler.'],
+   ['Her hamlede biraz daha iyi','BLOCK SNAPPY’nin arkasındaki amaç sade: temiz bir tasarım, akıcı bir oynanış ve her seferinde “bir tur daha” dedirten bir deneyim. Geri bildirimlerin ve önerilerin oyunun gelişmesine yardımcı olur. Bizimle blocksnappy@gmail.com üzerinden iletişime geçebilirsin.']
+  ]
+ },
+ en:{
+  privacy:[["Last Updated: 25 November 2026","This notice is based on the current version of BLOCK SNAPPY. If advertising, analytics, online accounts, cloud saves, or in-app purchases are added, this policy will be revised to reflect those changes."],["1. Who We Are and Scope","BLOCK SNAPPY is an independent block-puzzle game project. This Privacy Policy explains how information is handled when you use BLOCK SNAPPY in a browser or compatible environment running this HTML version. For privacy questions or requests, use the email address in section 12."],["2. Account and Information You Provide","The current version does not require an account, membership, username, or profile photo. The game does not ask for your name, home address, phone number, location, contacts, photos, camera, or microphone access. If you choose to contact us by email, your email address and message are sent to us through the email service you use. We use that correspondence to respond to your message and review your request."],["3. Information Stored on Your Device","To preserve progress and preferences, the game may store information in your browser’s LocalStorage. This may include your current and best score, games played, total points, cleared lines, placed blocks, combo and statistics data, achievements, daily quest progress, selected language, theme and block style, and sound, music, and vibration preferences. These records support the game’s core features. The current version does not include an account or cloud-sync system that sends these game records to a BLOCK SNAPPY server."],["4. Automatically Collected Device and Usage Data","The current game code is not designed to collect device model information, advertising identifiers (Google Advertising ID or IDFA), precise location, contacts, camera data, or microphone data. It also does not include an integrated behavioral advertising, profiling, or in-game analytics SDK. However, the website host, hosting provider, browser, operating system, or app store may independently process IP addresses, access times, browser types, and technical logs for security, connectivity, or service delivery. Such processing is governed by the relevant provider’s own privacy policy and terms; BLOCK SNAPPY’s game code does not control those server logs."],["5. How Information Is Used","Information stored on your device is used to run the game, preserve scores and progress, display statistics, track achievements and daily quests, and remember language and appearance preferences. If you email us, the contact details and message you provide may be used to reply, understand technical issues, and review feedback. The current version does not use these records for ad targeting or third-party marketing."],["6. Third-Party Services, Sharing and Email","The current version does not integrate analytics, advertising, online-score, or cloud-save SDKs such as Firebase, Unity Analytics, Google Analytics, Google AdMob, Unity Ads, Google Play Games, or Apple Game Center. The Share button may open your device’s or browser’s share sheet where supported. You choose the content, destination app, and recipient; the game does not access your contacts or share anything without your action. The email button opens a new Gmail draft with the recipient and subject filled in. The game does not send the email automatically; you review and send it yourself. When you use Gmail, WhatsApp, Telegram, X, or another third-party service, that service’s own privacy policy applies."],["7. Cookies and Similar Technologies","The current game code is not configured to use advertising cookies, behavioral tracking, or advertising identifiers. It uses browser LocalStorage for game progress and preferences. The website hosting the game or third-party services may use cookies or similar technical technologies for their own operation. Those uses are controlled by the relevant provider."],["8. Retention and Deletion","LocalStorage records may remain on your device until you use the in-game Reset Data option, clear the browser or site data, or the browser storage is otherwise removed. Changing devices, using a different browser, or clearing browser data may result in lost progress. The current version does not store or synchronize game records on a BLOCK SNAPPY-operated server. Emails you send to us may remain in our email account for a reasonable period to respond to your request and maintain necessary correspondence."],["9. Data Security","Because game records are stored in your browser, their security depends on your device, operating system, and browser security. We recommend keeping your device updated and protecting your information on shared devices. No internet transmission or electronic storage method can be guaranteed to be completely secure. Information sent by email passes through the systems of your email provider."],["10. Children’s Privacy","BLOCK SNAPPY is a general-audience puzzle game and the current version does not ask players to enter personal information directly. The game is not designed to collect personal information from children under 13. Parents and guardians may supervise children’s use of devices and the internet. If you believe a child has sent us personal information by email, please contact us using the address below."],["11. Your Rights under Applicable Data Protection Laws","Depending on the laws that apply where you live, you may have rights to ask whether your personal data is processed, request access, correct inaccurate information, request deletion where legally available, and exercise other rights provided by law. Users in Türkiye may submit requests under Personal Data Protection Law No. 6698 (KVKK) by email. Since game progress in the current version is stored locally on your device, you can also delete those records using the in-game Reset Data option. Ad-personalization controls do not apply to the current version because no advertising system is integrated."],["12. Changes and Contact","This Privacy Policy may be updated if game features, service providers, or legal requirements change. The current version will be published in this section with a revised update date. For questions about privacy, personal information, or deletion requests, contact the BLOCK SNAPPY developer at blocksnappy@gmail.com. No separate company name or website is currently specified for this version."]],
+  terms:[['1. Acceptance','By using BLOCK SNAPPY, you agree to these Terms. If you do not agree, stop using the game. These Terms cover the current version.'],['2. Permitted Use','BLOCK SNAPPY is a block puzzle game provided for personal entertainment. Use it lawfully and do not attempt to disrupt its normal operation, compromise its security or negatively affect other users.'],['3. Intellectual Property','The game name, visual design, interface, text, characters and software components belong to their respective rights holders or are used with permission. You may not copy, republish, sell or present substantial parts of the game as your own without written permission.'],['4. Saved Data','Scores and preferences may be stored in your browser on the device you use. Clearing browser data, changing devices or removing storage may result in lost progress. Continuous storage or cross-device transfer is not guaranteed.'],['5. Availability and Updates','Features, design and availability may change. Maintenance, technical issues, browser incompatibility or third-party outages may temporarily affect access.'],['6. Disclaimer','The game is provided as-is for entertainment. To the extent permitted by law, no guarantee is made against technical issues, incompatibility or data loss. Nothing here limits consumer rights that cannot legally be excluded.'],['7. Third-Party Apps','Sharing and email features may open third-party apps. Their terms and privacy practices are controlled by their providers.'],['8. Changes','These Terms may be updated as the game or legal requirements change. The latest version will appear in this section.'],['9. Contact','For questions about these Terms, email blocksnappy@gmail.com.']],
+  about:[['A puzzle made for one more round','BLOCK SNAPPY is an easy-to-learn block puzzle where every move can create a new opportunity. Place different shapes on the 8×8 board, complete rows and columns, earn points and challenge your personal best.'],['Play your way','Combo chains, daily quests, achievements, statistics, block styles and colorful themes add variety to every session. Whether you have a minute to spare or want to beat your record, BLOCK SNAPPY aims to make every round satisfying.'],['Better with your feedback','Our goal is simple: a clear design, responsive gameplay and a puzzle experience that makes you want one more round. Your feedback helps the game grow. Contact us at blocksnappy@gmail.com.']]
+ }
+};
+function legal(k){const lang=LI===0?'tr':'en',sections=LEGAL_TEXT[lang][k]||[];const body=sections.map(a=>'<h3>'+a[0]+'</h3><p>'+a[1]+'</p>').join('');modal('<div class="sth"><b>'+t(k)+'</b>'+X('more()')+'</div><div class="stp legal-copy">'+body+'</div>','ms')}
+function contact(){const gmail='https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(CONTACT_EMAIL)+'&su='+encodeURIComponent('BLOCK SNAPPY - İletişim')+'&body='+encodeURIComponent('Merhaba BLOCK SNAPPY ekibi,\n\nSize aşağıdaki konu hakkında ulaşmak istiyorum:\n\n\nTeşekkürler.');modal('<div class="sth"><b>'+t('contact')+'</b>'+X('more()')+'</div><div class="stp"><p class="lt">'+t('contactNote')+'<br><b>'+CONTACT_EMAIL+'</b></p><a class="mg" style="text-decoration:none;color:#fff" href="'+gmail+'" target="_blank" rel="noopener noreferrer">'+t('sendMail')+'</a><p class="lt" style="font-size:12px;opacity:.8;text-align:center">Gmail açılır ve alıcı bilgisi hazır gelir. Göndermeden önce mesajını yazıp kontrol edebilirsin.</p></div>','ms')}
+function moreGames(){modal('<div class="sth"><b>'+t('moreGames')+'</b>'+X('more()')+'</div><div class="stp" style="text-align:center"><div class="gm">'+ghost('wow')+'</div><p class="lt" style="text-align:center">'+t('comingSoon')+'</p></div>','ms')}
+function shareGame(){
+ const u=/^https?:\/\//i.test(location.href)?location.href.split('#')[0]:'';
+ const tx=t('shareText');
+ const payload={title:'BLOCK SNAPPY',text:tx,...(u?{url:u}:{})};
+ if(navigator.share){
+   navigator.share(payload).catch(err=>{if(err&&err.name!=='AbortError')shareFallback(tx,u)});
+ }else{
+   shareFallback(tx,u);
+ }
+}
+function shareFallback(tx,u){const msg=tx+(u?' '+u:'');const enc=encodeURIComponent(msg);modal('<div class="sth"><b>'+t('share')+'</b>'+X('more()')+'</div><div class="stp"><p class="lt">Paylaşmak istediğin uygulamayı seç.</p><div class="share-actions"><button onclick="shareTo(\'whatsapp\')">WhatsApp</button><button onclick="shareTo(\'telegram\')">Telegram</button><button onclick="shareTo(\'x\')">X</button><button onclick="copyShare()">Bağlantıyı Kopyala</button></div></div>','ms');window._snappyShare={msg,url:u}}
+function shareTo(where){const d=window._snappyShare||{msg:t('shareText'),url:''},text=encodeURIComponent(d.msg),url=encodeURIComponent(d.url);const links={whatsapp:'https://wa.me/?text='+text,telegram:'https://t.me/share/url?url='+url+'&text='+text,x:'https://twitter.com/intent/tweet?text='+text+(d.url?'&url='+url:'')};if(links[where])window.open(links[where],'_blank','noopener,noreferrer')}
+function copyShare(){const d=window._snappyShare||{msg:t('shareText'),url:''},value=d.msg+(d.url?' '+d.url:'');const done=()=>toast(t('linkCopied'));if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(value).then(done).catch(()=>prompt('Paylaşım metnini kopyala',value));else prompt('Paylaşım metnini kopyala',value)}
+function quests(){dayCheck();
+ const rem=()=>{const q=Math.max(0,D.q.t+864e5-Date.now())/1000|0;return[q/3600|0,q%3600/60|0,q%60].map(x=>String(x).padStart(2,'0')).join(':')};
+ modal('<h2>'+t('dailyQ')+'</h2>'+D.q.g.map(q=>{const v=Math.min(D.q.p[q.k]||0,q.n);return '<div class="li"><div style="flex:1">'+t(QDEF[q.k].t,q.n)+(v>=q.n?' <span data-i="check" style="color:#5fe36b;font-size:18px"></span>':'')+'<div class="bar"><i style="width:'+v/q.n*100+'%"></i></div></div><span>'+v+'/'+q.n+'</span></div>'}).join('')+
+ '<p id="qt" style="text-align:center;opacity:.85;font-size:14px;margin:10px 0 0">'+t('newIn',rem())+'</p><button class="btn" onclick="closeM()">'+t('close')+'</button>');
+ qiv=setInterval(()=>{const e=$('#qt');if(!e){clearInterval(qiv);return}if(Date.now()-D.q.t>=864e5){quests();return}e.textContent=t('newIn',rem())},1000)}
+function achs(){modal('<h2>'+t('ach')+'</h2>'+ACH.map(a=>'<div class="li"><div>'+a.n()+'<small>'+a.d()+'</small></div><span>'+(D.ach[a.id]?'<span data-i="trophy" style="font-size:26px"></span>':'<span data-i="lock" style="font-size:22px;opacity:.65"></span>')+'</span></div>').join('')+'<button class="btn" onclick="closeM()">'+t('close')+'</button>')}
+function stats(){const s=D.st,r=(a,b)=>'<div class="li">'+a+'<span>'+b+'</span></div>';modal('<h2>'+t('stats')+'</h2>'+r(t('bestScore'),D.best)+r(t('gamesPl'),s.games)+r(t('totalPts'),s.total)+r(t('linesL'),s.lines)+r(t('placedB'),s.placed)+r(t('maxCombo'),s.combo)+'<button class="btn" onclick="closeM()">'+t('close')+'</button>')}
+
+/* ---------- olaylar ---------- */
+addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#game').classList.contains('on')){if(M.classList.contains('on')){if(paused)closeM()}else settings()}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing&&!paused&&!M.classList.contains('on'))settings()});
+M.addEventListener('pointerdown',e=>{if(e.target===M&&playing)closeM()});
+let rz=0;const resizeFit=()=>{cancelAnimationFrame(rz);rz=requestAnimationFrame(fit)};
+addEventListener('resize',resizeFit);
+if(window.visualViewport)window.visualViewport.addEventListener('resize',resizeFit);
+document.addEventListener('contextmenu',e=>e.preventDefault());
+applyTheme();fit();buildMenu();fillIcons(document);$('#menuGhost').innerHTML=ghost('happy');$('#sh').innerHTML=IC.heart;$('#heart').innerHTML=IC.heart;applyLang();show('menu');
+</script>
+</body>
+</html>
